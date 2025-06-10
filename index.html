@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEMPTATION</title>
+    <!-- Main stylesheet -->
+    <link rel="stylesheet" href="main.css">
+    <!-- Google Fonts preconnect and import -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Creepster&family=Nosifer&family=Butcherman&family=Metal+Mania&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- =========================
+         Navigation Bar
+    ========================== -->
+    <nav class="nav">
+        <div class="nav-item active" data-target="home">HOME</div>
+        <div class="nav-item" onclick="enterSounds()">SOUNDS</div>
+        <div class="nav-item" data-target="team">TEAM</div>
+        <div class="nav-item" data-target="about">ABOUT</div>
+        <div class="nav-item" data-target="behind-scenes">BEHIND SCENES</div>
+    </nav>
+
+    <!-- =========================
+         Global Audio Player (floating)
+    ========================== -->
+    <div class="audio-player">
+        <div class="audio-control" id="audioToggle">
+            <div class="audio-icon">
+                <div class="sound-wave"></div>
+                <div class="sound-wave"></div>
+                <div class="sound-wave"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- =========================
+         Navigation Icon Animation
+    ========================== -->
+    <div class="navigation-icon" id="navigationIcon">
+        <div class="mystical-circle">
+            <div class="circle-ring ring-outer"></div>
+            <div class="circle-ring ring-middle"></div>
+            <div class="circle-ring ring-inner"></div>
+            <div class="mystical-center"></div>
+            <div class="mystical-particles">
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+                <div class="particle"></div>
+            </div>
+            <div class="mystical-symbol">⚫</div>
+        </div>
+    </div>
+
+    <!-- =========================
+         Home Section (Landing)
+    ========================== -->
+    <section class="section active" id="home">
+        <div class="hero-container">
+            <div class="title-stack">
+                <h1 class="main-title distressed-title reveal-text" data-text="TEMPTATION">TEMPTATION</h1>
+                <h1 class="main-title highlight grunge-title reveal-text delay-1" data-text="A SOUND">A SOUND</h1>
+                <h1 class="main-title brush-title reveal-text delay-2" data-text="STORY">STORY</h1>
+            </div>
+
+        </div>
+        
+
+
+        <!-- Call to Action -->
+        <div class="cta-container">
+            <div class="cta-content">
+                <p class="cta-text">Ready to confront temptation?</p>
+                <button class="cta-btn" onclick="enterStory()">
+                    <span class="cta-icon">🎧</span>
+                    <span class="cta-label">ENTER THE STORY</span>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================
+         Team Section
+    ========================== -->
+    <section class="section" id="team">
+        <div class="team-container">
+            <div class="team-header">
+                <h2 class="section-title distressed-title reveal-text" data-text="THE TEAM">THE TEAM</h2>
+                <div class="team-subtitle">VOICES BEHIND THE STORY</div>
+            </div>
+            <div class="team-content">
+                <div class="team-member">
+                    <div class="member-info">
+                        <h3 class="member-name brush-title reveal-text delay-1" data-text="DIRECTOR">DIRECTOR</h3>
+                        <p class="member-role">Vision & Narrative</p>
+                        <p class="member-bio">Crafting the emotional journey through sound and story, exploring themes of desire and human complexity.</p>
+                </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-info">
+                        <h3 class="member-name distressed-title reveal-text delay-2" data-text="SOUND DESIGNER">SOUND DESIGNER</h3>
+                        <p class="member-role">Audio Architecture</p>
+                        <p class="member-bio">Building immersive soundscapes that blur the line between reality and temptation.</p>
+                </div>
+                </div>
+                <div class="team-member">
+                    <div class="member-info">
+                        <h3 class="member-name grunge-title reveal-text delay-3" data-text="NARRATIVE WRITER">NARRATIVE WRITER</h3>
+                        <p class="member-role">Story & Voice</p>
+                        <p class="member-bio">Weaving words that resonate with the universal experience of temptation and choice.</p>
+                </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================
+         About Section
+    ========================== -->
+    <section class="section" id="about">
+        <div class="about-container">
+            <h2 class="section-title grunge-title reveal-text" data-text="ABOUT">ABOUT</h2>
+            <div class="about-content">
+                <div class="about-text">
+                    <p class="large-text">Temptation is an immersive sound story that explores the complex landscape of human desire and the choices that define us.</p>
+                    <p>Through carefully crafted audio narratives and ambient soundscapes, we journey through moments of tension, decision, and consequence. Each sound tells a story, each silence holds meaning.</p>
+                    <p>This is not just a story about temptation—it's about the human condition, the pull between what we want and what we know is right, the whispers that echo in our minds when we're faced with difficult choices.</p>
+                    <p>Listen carefully. The story unfolds not just in words, but in the spaces between them, in the breath before the decision, in the silence after the choice is made.</p>
+                </div>
+                <div class="project-details">
+                    <div class="detail-item">
+                        <span class="detail-label">FORMAT</span>
+                        <span class="detail-value">INTERACTIVE SOUND STORY</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">DURATION</span>
+                        <span class="detail-value">VARIABLE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">MEDIUM</span>
+                        <span class="detail-value">AUDIO NARRATIVE</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">THEME</span>
+                        <span class="detail-value">HUMAN DESIRE & CHOICE</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================
+         Behind Scenes Section
+    ========================== -->
+    <section class="section" id="behind-scenes">
+        <div class="behind-scenes-container">
+            <h2 class="section-title brush-title reveal-text" data-text="BEHIND THE SCENES">BEHIND THE SCENES</h2>
+            <div class="behind-scenes-content">
+                <div class="process-section">
+                    <h3 class="process-title distressed-title reveal-text delay-1" data-text="THE PROCESS">THE PROCESS</h3>
+                    <div class="process-item">
+                        <div class="process-step">01</div>
+                        <div class="process-info">
+                            <h4 class="brush-title" data-text="CONCEPTUALIZATION">CONCEPTUALIZATION</h4>
+                            <p>We began by exploring the psychological aspects of temptation—what drives desire, how choices are made, and the aftermath of decision.</p>
+                        </div>
+                    </div>
+                    <div class="process-item">
+                        <div class="process-step">02</div>
+                        <div class="process-info">
+                            <h4 class="distressed-title" data-text="SOUND COLLECTION">SOUND COLLECTION</h4>
+                            <p>Recording ambient sounds, whispers, heartbeats, and environmental audio that would create the emotional landscape of the story.</p>
+                        </div>
+                    </div>
+                    <div class="process-item">
+                        <div class="process-step">03</div>
+                        <div class="process-info">
+                            <h4 class="grunge-title" data-text="NARRATIVE DEVELOPMENT">NARRATIVE DEVELOPMENT</h4>
+                            <p>Crafting the story structure to unfold through horizontal scrolling, allowing listeners to control their journey through temptation.</p>
+                        </div>
+                    </div>
+                    <div class="process-item">
+                        <div class="process-step">04</div>
+                        <div class="process-info">
+                            <h4 class="brush-title" data-text="INTERACTIVE DESIGN">INTERACTIVE DESIGN</h4>
+                            <p>Building the seamless audio experience where sound guides the narrative flow and user interaction enhances immersion.</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="insights-section">
+                    <h3 class="insights-title grunge-title reveal-text delay-2" data-text="CREATIVE INSIGHTS">CREATIVE INSIGHTS</h3>
+                    <div class="insight-item">
+                        <p>"The most powerful temptations are often the quietest ones—the whispers that feel like our own thoughts."</p>
+                    </div>
+                    <div class="insight-item">
+                        <p>"Sound has the unique ability to bypass our rational mind and speak directly to our emotions and memories."</p>
+                    </div>
+                    <div class="insight-item">
+                        <p>"Every pause in the narrative is a moment of choice—for both the characters and the listeners."</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+
+
+    <!-- Main JavaScript file -->
+    <script src="main.js"></script>
+</body>
+</html>
