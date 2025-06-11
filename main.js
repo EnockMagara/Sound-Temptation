@@ -417,7 +417,15 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('keydown', function(e) {
             if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
                 e.preventDefault();
-                navigateSection(e.key === 'ArrowRight' ? 1 : -1);
+                const direction = e.key === 'ArrowRight' ? 1 : -1;
+                
+                // Check if auto-advance is enabled and audio is playing
+                if (autoAdvanceEnabled && currentAudio && !currentAudio.paused && direction > 0) {
+                    showNotification('Auto-advance is enabled. Audio will advance automatically when finished.');
+                    return;
+                }
+                
+                navigateSection(direction);
             } else if (e.key === ' ') {
                 e.preventDefault();
                 toggleCurrentAudio();
@@ -428,6 +436,13 @@ document.addEventListener('DOMContentLoaded', function() {
     // Navigate between sections
     function navigateSection(direction) {
         console.log('navigateSection called with direction:', direction, 'currentSection:', currentSection);
+        
+        // Check if auto-advance is enabled and audio is playing (forward navigation only)
+        if (autoAdvanceEnabled && currentAudio && !currentAudio.paused && direction > 0) {
+            showNotification('Auto-advance is enabled. Audio will advance automatically when finished.');
+            return;
+        }
+        
         if (!canNavigate && direction > 0) {
             showNotification('Please wait for the audio to finish before proceeding...');
             return;
