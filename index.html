@@ -23,6 +23,9 @@
         <div class="nav-item" data-target="behind-scenes">BEHIND SCENES</div>
     </nav>
 
+    <!-- Screen reader announcements -->
+    <div id="sr-announcements" aria-live="polite" aria-atomic="true" style="position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;"></div>
+
     <!-- =========================
          Navigation Icon Animation
     ========================== -->
@@ -221,7 +224,7 @@
                         <div class="image-carousel">
                             <img src="public/images/1.png" alt="Panel 1" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)" aria-label="Navigate to next panel">Next Panel →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -243,8 +246,8 @@
                         <div class="image-carousel">
                             <img src="public/images/2.png" alt="Panel 2" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
-                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)" aria-label="Navigate to previous panel">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)" aria-label="Navigate to next panel">Next Panel →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -266,8 +269,8 @@
                         <div class="image-carousel">
                             <img src="public/images/3.png" alt="Panel 3" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
-                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)" aria-label="Navigate to previous panel">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)" aria-label="Navigate to next panel">Next Panel →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -289,8 +292,8 @@
                         <div class="image-carousel">
                             <img src="public/images/4.png" alt="Panel 4" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
-                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)" aria-label="Navigate to previous panel">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)" aria-label="Navigate to next panel">Next Panel →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -327,8 +330,8 @@
                         <div class="image-carousel">
                             <img src="public/images/5.png" alt="Sleep Ending" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
-                                <button class="nav-btn next-btn" onclick="restartStory()">Restart Story →</button>
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)" aria-label="Navigate to previous panel">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="restartStory()" aria-label="Restart the story">Restart Story →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -350,8 +353,8 @@
                         <div class="image-carousel">
                             <img src="public/images/6.png" alt="Pray Ending" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
-                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)" aria-label="Navigate to previous panel">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)" aria-label="Navigate to next panel">Next Panel →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -373,8 +376,8 @@
                         <div class="image-carousel">
                             <img src="public/images/7.png" alt="Panel 7" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
-                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)" aria-label="Navigate to previous panel">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)" aria-label="Navigate to next panel">Next Panel →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -396,8 +399,8 @@
                         <div class="image-carousel">
                             <img src="public/images/8.png" alt="Panel 8" class="story-image">
                             <div class="panel-navigation">
-                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
-                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)" aria-label="Navigate to previous panel">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)" aria-label="Navigate to next panel">Next Panel →</button>
                             </div>
                         </div>
                         <div class="audio-controls">
@@ -452,6 +455,18 @@
     ========================== -->
     <div class="global-media-player" id="globalMediaPlayer">
         <button class="global-play-pause-btn" id="globalPlayPauseBtn">▶</button>
+        <div class="playback-speed-control">
+            <span class="speed-label">Speed:</span>
+            <select id="playbackSpeedSelector" class="speed-selector" title="Select playback speed">
+                <option value="0.5">0.5x</option>
+                <option value="0.75">0.75x</option>
+                <option value="1" selected>1x</option>
+                <option value="1.25">1.25x</option>
+                <option value="1.5">1.5x</option>
+                <option value="1.75">1.75x</option>
+                <option value="2">2x</option>
+            </select>
+        </div>
         <input type="range" id="globalSeekSlider" min="0" max="100" value="0" class="seek-slider">
         <div class="time-display">
             <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>

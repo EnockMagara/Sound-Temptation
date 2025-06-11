@@ -1840,6 +1840,12 @@ body {
     transform: translateY(0);
 }
 
+/* Prevent focus during transitions */
+.nav-btn[aria-hidden="true"] {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
 .fast-forward-mode {
     position: fixed;
     top: 20px;
@@ -1860,6 +1866,36 @@ body {
 }
 
 .fast-forward-mode .icon {
+    font-size: 1.2rem;
+}
+
+.auto-advance-mode {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    background: rgba(0, 150, 255, 0.2);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: #fff;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.auto-advance-mode.active {
+    display: flex;
+}
+
+.auto-advance-mode:hover {
+    background: rgba(0, 150, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.auto-advance-mode .icon {
     font-size: 1.2rem;
 }
 
@@ -2512,6 +2548,62 @@ body {
     text-align: right;
 }
 
+.playback-speed-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 8px;
+}
+
+.speed-label {
+    font-size: 0.75rem;
+    color: #fff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.speed-selector {
+    background: #000000;
+    border: 1px solid #ffffff;
+    color: #ffffff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    outline: none;
+    transition: all 0.2s ease;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1 1L6 6L11 1" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 6px center;
+    background-size: 10px;
+    padding-right: 24px;
+    min-width: 60px;
+}
+
+.speed-selector:hover {
+    border-color: #cccccc;
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.speed-selector:focus {
+    border-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+}
+
+.speed-selector option {
+    background: #000000;
+    color: #ffffff;
+    font-family: 'Space Grotesk', sans-serif;
+    padding: 4px;
+}
+
 /* Adjustments for existing elements */
 .audio-controls {
     display: flex;
@@ -2601,5 +2693,27 @@ body {
     }
     .narrative-content {
         gap: 16px;
+    }
+    
+    #globalMediaPlayer {
+        padding: 8px 12px;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    
+    .playback-speed-control {
+        gap: 4px;
+        margin: 0 4px;
+    }
+    
+    .speed-label {
+        font-size: 0.7rem;
+    }
+    
+    .speed-selector {
+        font-size: 0.7rem;
+        padding: 2px 4px;
+        padding-right: 18px;
+        min-width: 45px;
     }
 }

@@ -21,6 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const globalSeekSlider = document.getElementById('globalSeekSlider');
     const currentTimeDisplay = document.getElementById('currentTime');
     const totalTimeDisplay = document.getElementById('totalTime');
+    const playbackSpeedSelector = document.getElementById('playbackSpeedSelector');
 
     let currentAudio = null; // Currently playing audio element
     let currentPlayButton = null; // Reference to the play button of the current audio
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let audioContextUnlocked = false; // Initialize to false
     let hasCompletedStory = false; // Track if user has completed the story
     let isFastForwardMode = false; // Track fast-forward mode state
+    let autoAdvanceEnabled = true; // Track if auto-advance is enabled
 
     // Add fast-forward mode indicator to the DOM
     const fastForwardIndicator = document.createElement('div');
@@ -38,11 +40,26 @@ document.addEventListener('DOMContentLoaded', function() {
     fastForwardIndicator.innerHTML = '<span class="icon">⏩</span> Fast-Forward Mode';
     document.body.appendChild(fastForwardIndicator);
 
+    // Add auto-advance mode indicator to the DOM
+    const autoAdvanceIndicator = document.createElement('div');
+    autoAdvanceIndicator.className = 'auto-advance-mode active';
+    autoAdvanceIndicator.innerHTML = '<span class="icon">🔄</span> Auto-Advance: ON';
+    document.body.appendChild(autoAdvanceIndicator);
+
     // Function to toggle fast-forward mode
     function toggleFastForwardMode() {
         isFastForwardMode = !isFastForwardMode;
         fastForwardIndicator.classList.toggle('active');
         updateNavigationButtons();
+    }
+
+    // Function to toggle auto-advance mode
+    function toggleAutoAdvanceMode() {
+        autoAdvanceEnabled = !autoAdvanceEnabled;
+        autoAdvanceIndicator.classList.toggle('active');
+        autoAdvanceIndicator.innerHTML = autoAdvanceEnabled ? 
+            '<span class="icon">🔄</span> Auto-Advance: ON' : 
+            '<span class="icon">⏸️</span> Auto-Advance: OFF';
     }
 
     // Function to update navigation buttons state
@@ -157,6 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (globalVolumeControlContainer) {
                     globalVolumeControlContainer.style.display = 'flex'; // Show volume control on story book
                 }
+                // Show auto-advance indicator in story book
+                if (autoAdvanceIndicator) {
+                    autoAdvanceIndicator.style.display = 'flex';
+                }
             } else {
                 console.log('Navigating away from Story Book section. Stopping audio.');
                 stopCurrentAudio(); // Stop any audio playing when leaving sounds section
@@ -165,6 +186,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
                 if (globalVolumeControlContainer) {
                     globalVolumeControlContainer.style.display = 'none'; // Hide volume control outside story book
+                }
+                // Hide auto-advance indicator outside story book
+                if (autoAdvanceIndicator) {
+                    autoAdvanceIndicator.style.display = 'none';
                 }
             }
             
@@ -561,8 +586,6 @@ document.addEventListener('DOMContentLoaded', function() {
             updatePlayButtonState(button, audioElement, false);
             canNavigate = true;
             audioCompleted = true;
-            currentAudio = null;
-            currentPlayButton = null;
             updateNavigationButtons(); // Show next button when audio ends
             
             // If this is the last section, mark story as completed
@@ -574,6 +597,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     showNotification('Fast-forward mode enabled! You can now navigate freely.');
                 }
             }
+            
+            // Auto-advance to next panel after audio ends immediately
+            autoAdvanceToNextPanel();
         };
     }
 
@@ -669,6 +695,11 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         stopCurrentAudio();
+        
+        // Temporarily hide panel navigation buttons from screen readers during transition
+        document.querySelectorAll('.panel-navigation button').forEach(btn => {
+            btn.setAttribute('aria-hidden', 'true');
+        });
 
         const currentNarrativeSection = narrativeSections[currentSection];
         let newSectionIndex = currentSection + direction;
@@ -726,7 +757,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     if (audioContextUnlocked && newAudioElement.paused) {
                         console.log('Attempting to autoplay new panel audio.');
-                        playAudio(newAudioElement, newPlayButton, newPlayButton.querySelector('.play-icon'), newPlayButton.querySelector('.play-text'));
+                        // Add a small delay to ensure the DOM is updated and prevent conflicts with screen readers
+                        setTimeout(() => {
+                            // Announce panel change to screen readers without interfering with audio
+                            const announceEl = document.getElementById('sr-announcements');
+                            if (announceEl) {
+                                announceEl.textContent = `Panel ${targetSection.dataset.section} audio playing`;
+                            }
+                            playAudio(newAudioElement, newPlayButton, newPlayButton.querySelector('.play-icon'), newPlayButton.querySelector('.play-text'));
+                        }, 200);
                     } else if (!audioContextUnlocked) {
                         console.log('Audio context not unlocked for new panel autoplay.');
                         showNotification('Please enable audio first (bottom left icon)!');
@@ -756,6 +795,13 @@ document.addEventListener('DOMContentLoaded', function() {
         scrollToSection(currentSection);
         updateActiveNarrativeSection();
         updateNavigationButtons(); // Update button visibility after navigation
+        
+        // Restore accessibility of navigation buttons after transition
+        setTimeout(() => {
+            document.querySelectorAll('.panel-navigation button').forEach(btn => {
+                btn.removeAttribute('aria-hidden');
+            });
+        }, 500);
     };
 
     // --- New Global Volume Control Logic ---
@@ -815,6 +861,25 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Handle playback speed changes
+        if (playbackSpeedSelector) {
+            playbackSpeedSelector.addEventListener('change', (e) => {
+                const speed = parseFloat(e.target.value);
+                console.log('Playback speed changed to:', speed);
+                if (currentAudio) {
+                    currentAudio.playbackRate = speed;
+                    console.log('Applied playback rate to current audio:', currentAudio.src);
+                }
+                // Save the selected speed for future audio elements
+                document.querySelectorAll('audio').forEach(audio => {
+                    if (audio !== currentAudio) {
+                        audio.playbackRate = speed;
+                    }
+                });
+                showNotification(`Playback speed set to ${speed}x`);
+            });
+        }
+
         // Update global media player state as audio plays
         document.querySelectorAll('audio').forEach(audioElement => {
             audioElement.addEventListener('timeupdate', () => {
@@ -853,15 +918,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
 
-            audioElement.addEventListener('ended', () => {
+                        audioElement.addEventListener('ended', () => {
                 if (audioElement === currentAudio) {
                     globalPlayPauseBtn.textContent = '▶';
                     globalSeekSlider.value = 0;
                     currentTimeDisplay.textContent = '0:00';
                     console.log('Global player: Audio ended.');
-                    // Clear current audio and button reference, but keep global player visible if in Story Book
-                    currentAudio = null;
-                    currentPlayButton = null;
+                    // Note: Auto-advance logic is handled in playAudio function's onended handler
                 }
             });
         });
@@ -879,6 +942,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
         currentAudio = audioElement; // Set the new current audio
+        
+        // Apply current playback speed to the new audio
+        if (playbackSpeedSelector) {
+            const selectedSpeed = parseFloat(playbackSpeedSelector.value);
+            currentAudio.playbackRate = selectedSpeed;
+            console.log('Applied playback rate', selectedSpeed, 'to new current audio');
+        }
+        
         globalPlayPauseBtn.textContent = currentAudio.paused ? '▶' : '⏸';
         globalSeekSlider.value = (currentAudio.currentTime / currentAudio.duration) * 100 || 0;
         currentTimeDisplay.textContent = formatTime(currentAudio.currentTime);
@@ -891,6 +962,84 @@ document.addEventListener('DOMContentLoaded', function() {
         const minutes = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
         return `${minutes}:${secs < 10 ? '0' : ''}${secs}`;
+    }
+
+    // Auto-advance to next panel when audio ends
+    function autoAdvanceToNextPanel() {
+        if (!autoAdvanceEnabled) {
+            console.log('Auto-advance is disabled - not advancing to next panel');
+            return;
+        }
+        
+        console.log('Auto-advancing to next panel from section:', currentSection);
+        
+        const currentNarrativeSection = narrativeSections[currentSection];
+        
+        // Handle special cases first
+        if (currentNarrativeSection.dataset.section === '4') {
+            // Panel 4 leads to branching choice, don't auto-advance
+            console.log('Panel 4 audio ended - showing branching choice instead of auto-advancing');
+            const branchingChoice = currentNarrativeSection.querySelector('.branching-choice');
+            if (branchingChoice) {
+                branchingChoice.style.display = 'flex';
+            }
+            return;
+        }
+        
+        // Check if we're at the end of the story
+        if (currentNarrativeSection.classList.contains('ending-sleep') || 
+            currentNarrativeSection.classList.contains('ending-pray')) {
+            console.log('Reached ending panel - not auto-advancing');
+            return;
+        }
+        
+        // Find next valid section
+        let nextSectionIndex = currentSection + 1;
+        let nextSection = narrativeSections[nextSectionIndex];
+        
+        // Skip hidden sections
+        while (nextSection && nextSection.style.display === 'none') {
+            nextSectionIndex++;
+            if (nextSectionIndex >= narrativeSections.length) {
+                nextSection = null;
+                break;
+            }
+            nextSection = narrativeSections[nextSectionIndex];
+        }
+        
+        if (nextSection && nextSectionIndex < narrativeSections.length) {
+            console.log('Auto-advancing to section:', nextSectionIndex);
+            
+            // Reset audio completed flag for the new section
+            audioCompleted = false;
+            
+            // Navigate to next panel
+            currentSection = nextSectionIndex;
+            scrollToSection(currentSection);
+            updateActiveNarrativeSection();
+            updateNavigationButtons();
+            
+            // Auto-play the next panel's audio
+            const nextAudioElement = nextSection.querySelector('audio');
+            const nextPlayButton = nextSection.querySelector('.play-btn');
+            
+            if (nextAudioElement && nextPlayButton && audioContextUnlocked) {
+                console.log('Auto-playing next panel audio');
+                currentAudio = nextAudioElement;
+                currentPlayButton = nextPlayButton;
+                updateGlobalMediaPlayer(nextAudioElement);
+                
+                // Play the audio immediately
+                playAudio(nextAudioElement, nextPlayButton, 
+                         nextPlayButton.querySelector('.play-icon'), 
+                         nextPlayButton.querySelector('.play-text'));
+            } else if (!audioContextUnlocked) {
+                console.log('Audio context not unlocked - cannot auto-play next panel');
+                showNotification('Audio context not enabled - please click play to continue');
+            }
+        } else {
+            console.log('No valid next section found for auto-advance');
+        }
     }
 
     // Intersection Observer for active section detection
@@ -925,7 +1074,10 @@ document.addEventListener('DOMContentLoaded', function() {
                             if (audioContextUnlocked && newAudioElement.paused) {
                                 console.log('Intersection Observer: Attempting autoplay for new active section.');
                                 // Autoplay only if audio context is unlocked and not already playing
-                                playAudio(newAudioElement, newPlayButton, newPlayButton.querySelector('.play-icon'), newPlayButton.querySelector('.play-text'));
+                                // Add a delay to prevent conflicts with screen reader announcements
+                                setTimeout(() => {
+                                    playAudio(newAudioElement, newPlayButton, newPlayButton.querySelector('.play-icon'), newPlayButton.querySelector('.play-text'));
+                                }, 300);
                             }
                         } else {
                             console.log('Intersection Observer: No audio or play button for new active section.');
@@ -954,13 +1106,24 @@ document.addEventListener('DOMContentLoaded', function() {
         observeElements();
     }
 
-    // Add keyboard shortcut for fast-forward mode (Alt + F)
+    // Add keyboard shortcuts
     document.addEventListener('keydown', function(e) {
         if (e.altKey && e.key.toLowerCase() === 'f') {
             e.preventDefault();
             toggleFastForwardMode();
             showNotification(isFastForwardMode ? 'Fast-forward mode enabled!' : 'Fast-forward mode disabled.');
         }
+        if (e.altKey && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            toggleAutoAdvanceMode();
+            showNotification(autoAdvanceEnabled ? 'Auto-advance enabled!' : 'Auto-advance disabled.');
+        }
+    });
+
+    // Add click functionality to auto-advance indicator
+    autoAdvanceIndicator.addEventListener('click', function() {
+        toggleAutoAdvanceMode();
+        showNotification(autoAdvanceEnabled ? 'Auto-advance enabled!' : 'Auto-advance disabled.');
     });
 
     // Initialize navigation buttons state
