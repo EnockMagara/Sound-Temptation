@@ -62,16 +62,26 @@ document.addEventListener('DOMContentLoaded', function() {
             '<span class="icon">🔄</span> Auto-Advance: ON' : 
             '<span class="icon">⏸️</span> Auto-Advance: OFF';
         
-        // If enabling auto-advance, ensure proper state
+        // If enabling auto-advance, check if current audio has already ended
         if (autoAdvanceEnabled) {
-            console.log('Auto-advance enabled - resetting state for current section');
-            // If current audio has already ended and we're enabling auto-advance,
-            // make sure the state is properly reset for potential future auto-advance
+            console.log('Auto-advance enabled - checking if current audio has already ended');
             const currentNarrativeSection = narrativeSections[currentSection];
             if (currentNarrativeSection) {
                 const currentAudioElement = currentNarrativeSection.querySelector('audio');
                 if (currentAudioElement && currentAudioElement.ended) {
-                    console.log('Current audio has already ended - auto-advance ready for next play');
+                    console.log('Current audio has already ended - immediately triggering auto-advance');
+                    // Small delay to ensure the toggle completes and UI updates
+                    setTimeout(() => {
+                        autoAdvanceToNextPanel();
+                    }, 100);
+                } else if (audioCompleted) {
+                    console.log('Audio marked as completed - immediately triggering auto-advance');
+                    // Small delay to ensure the toggle completes and UI updates
+                    setTimeout(() => {
+                        autoAdvanceToNextPanel();
+                    }, 100);
+                } else {
+                    console.log('Audio not yet completed - auto-advance will trigger when current audio ends');
                 }
             }
         }
@@ -447,6 +457,13 @@ document.addEventListener('DOMContentLoaded', function() {
             const sectionWidth = window.innerWidth;
             const newSection = Math.round(scrollLeft / sectionWidth);
 
+            // Block forward navigation if auto-advance is enabled
+            if (autoAdvanceEnabled && newSection > currentSection) {
+                scrollToSection(currentSection, false);
+                showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
+                return;
+            }
+
             if (newSection > currentSection && !canNavigate && newSection > 0) {
                 scrollToSection(currentSection, false);
                 showNotification('Please wait for the audio to finish before proceeding...');
@@ -465,9 +482,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 e.preventDefault();
                 const direction = e.key === 'ArrowRight' ? 1 : -1;
                 
-                // Check if auto-advance is enabled and audio is playing
-                if (autoAdvanceEnabled && currentAudio && !currentAudio.paused && direction > 0) {
-                    showNotification('Auto-advance is enabled. Audio will advance automatically when finished.');
+                // Block forward navigation if auto-advance is enabled
+                if (autoAdvanceEnabled && direction > 0) {
+                    showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
                     return;
                 }
                 
@@ -483,9 +500,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function navigateSection(direction) {
         console.log('navigateSection called with direction:', direction, 'currentSection:', currentSection);
         
-        // Check if auto-advance is enabled and audio is playing (forward navigation only)
-        if (autoAdvanceEnabled && currentAudio && !currentAudio.paused && direction > 0) {
-            showNotification('Auto-advance is enabled. Audio will advance automatically when finished.');
+        // Block forward navigation if auto-advance is enabled
+        if (autoAdvanceEnabled && direction > 0) {
+            showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
             return;
         }
         
@@ -522,8 +539,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Update active narrative section and related states
-    function updateActiveNarrativeSection(skipAutoplay = false) {
-        console.log('Updating active narrative section. Current section:', currentSection, 'skipAutoplay:', skipAutoplay);
+    function updateActiveNarrativeSection(skipAutoplay = false, forceAutoplay = false) {
+        console.log('Updating active narrative section. Current section:', currentSection, 'skipAutoplay:', skipAutoplay, 'forceAutoplay:', forceAutoplay);
         
         if (!skipAutoplay) {
             stopCurrentAudio(); // ✅ STOP previous audio before activating new panel
@@ -540,9 +557,21 @@ document.addEventListener('DOMContentLoaded', function() {
                     const playButton = section.querySelector('.play-btn');
                     if (audio && playButton) {
                         console.log('Audio element and play button found for panel', section.dataset.section);
-                        if (audio.paused && audioContextUnlocked) {
-                            console.log('Attempting autoplay for panel', section.dataset.section, '. Audio context unlocked.');
+                        
+                        // Update current audio references regardless of autoplay
+                        currentAudio = audio;
+                        currentPlayButton = playButton;
+                        updateGlobalMediaPlayer(audio);
+                        
+                        // Autoplay conditions:
+                        // 1. Force autoplay (from auto-advance) OR
+                        // 2. Auto-advance is disabled AND audio is paused AND context is unlocked
+                        if ((forceAutoplay || !autoAdvanceEnabled) && audio.paused && audioContextUnlocked) {
+                            const reason = forceAutoplay ? 'auto-advance requested' : 'auto-advance disabled';
+                            console.log(`Attempting autoplay for panel ${section.dataset.section}. Reason: ${reason}.`);
                             playAudio(audio, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
+                        } else if (autoAdvanceEnabled && !forceAutoplay) {
+                            console.log('Auto-advance is enabled for panel', section.dataset.section, '. Skipping autoplay - will be handled by auto-advance.');
                         } else if (!audio.paused) {
                             console.log('Audio for panel', section.dataset.section, 'is already playing.');
                             updatePlayButtonState(playButton, audio, true);
@@ -789,6 +818,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to navigate between panels (from sounds.html buttons)
     window.navigatePanel = function(direction) {
         console.log('navigatePanel called with direction:', direction, 'from section:', currentSection);
+        
+        // Block forward navigation if auto-advance is enabled
+        if (autoAdvanceEnabled && direction > 0) {
+            showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
+            return;
+        }
         
         // If trying to go forward and not allowed, show notification
         if (direction > 0 && !audioCompleted && !isFastForwardMode && !hasCompletedStory) {
@@ -1119,30 +1154,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Navigate to next panel
             currentSection = nextSectionIndex;
             scrollToSection(currentSection);
-            updateActiveNarrativeSection();
+            updateActiveNarrativeSection(false, true); // forceAutoplay = true for auto-advance
             updateNavigationButtons();
             
-            // Auto-play the next panel's audio
-            const nextAudioElement = nextSection.querySelector('audio');
-            const nextPlayButton = nextSection.querySelector('.play-btn');
-            
-            if (nextAudioElement && nextPlayButton && audioContextUnlocked) {
-                console.log('Auto-playing next panel audio');
-                currentAudio = nextAudioElement;
-                currentPlayButton = nextPlayButton;
-                updateGlobalMediaPlayer(nextAudioElement);
-                
-                // Small delay to ensure smooth transition
-                setTimeout(() => {
-                    playAudio(nextAudioElement, nextPlayButton, 
-                             nextPlayButton.querySelector('.play-icon'), 
-                             nextPlayButton.querySelector('.play-text'));
-                }, 100);
-            } else if (!audioContextUnlocked) {
-                console.log('Audio context not unlocked - cannot auto-play next panel');
-                showNotification('Audio context not enabled - please click play to continue');
-                canNavigate = true; // Allow manual navigation if audio context is locked
-            }
+            // The audio will be handled by updateActiveNarrativeSection with forceAutoplay = true
+            console.log('Auto-advance completed - audio should be playing automatically');
         } else {
             console.log('No valid next section found for auto-advance');
         }
@@ -1177,13 +1193,17 @@ document.addEventListener('DOMContentLoaded', function() {
                             currentAudio = newAudioElement;
                             currentPlayButton = newPlayButton;
                             updateGlobalMediaPlayer(newAudioElement); // Update global player
-                            if (audioContextUnlocked && newAudioElement.paused) {
-                                console.log('Intersection Observer: Attempting autoplay for new active section.');
-                                // Autoplay only if audio context is unlocked and not already playing
+                            
+                            // Only autoplay if auto-advance is disabled or if audio context is unlocked and audio is paused
+                            // This prevents conflicts with auto-advance functionality
+                            if (!autoAdvanceEnabled && audioContextUnlocked && newAudioElement.paused) {
+                                console.log('Intersection Observer: Attempting autoplay for new active section (auto-advance disabled).');
                                 // Add a delay to prevent conflicts with screen reader announcements
                                 setTimeout(() => {
                                     playAudio(newAudioElement, newPlayButton, newPlayButton.querySelector('.play-icon'), newPlayButton.querySelector('.play-text'));
                                 }, 300);
+                            } else if (autoAdvanceEnabled) {
+                                console.log('Intersection Observer: Auto-advance is enabled, skipping autoplay - will be handled by auto-advance.');
                             }
                         } else {
                             console.log('Intersection Observer: No audio or play button for new active section.');
