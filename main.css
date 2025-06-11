@@ -16,10 +16,9 @@ html {
 }
 
 html, body {
-    height: 100%;
+    min-height: 100%; /* Allow content to expand beyond viewport */
     margin: 0;
     padding: 0;
-    padding-top: 80px; /* Add top padding to create space below fixed navigation */
     font-family: 'Space Grotesk', sans-serif;
     color: #ffffff;
     background-color: #000000;
@@ -113,8 +112,8 @@ body {
     width: 100%; /* Changed to 100% from 100vw */
     min-height: 100vh; /* Ensure body also takes full viewport height */
     position: relative;
-    overflow: hidden; /* Ensure no unintended global scrolling */
-    height: 100%; /* Ensure it takes full viewport height */
+    overflow-y: auto; /* Allow vertical scrolling for content */
+    overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 /* ==========================================================================
@@ -318,9 +317,9 @@ body {
 
 /* Hide sections by default, set padding and min height */
 .section {
-    min-height: 100vh;
+    min-height: auto; /* Allow natural content height */
     display: none;
-    padding: 220px 40px 60px 40px; /* Extra large top padding for nav bar */
+    padding: 90px 20px 60px 20px; /* Further reduced padding for nav bar */
     position: relative;
     box-sizing: border-box;
 }
@@ -329,6 +328,8 @@ body {
 .section.active {
     display: flex;
     flex-direction: column;
+    min-height: 100vh; /* Ensure at least viewport height */
+    height: auto; /* Allow content to expand naturally */
 }
 
 /* ==========================================================================
@@ -352,7 +353,7 @@ body {
     align-items: center;
     justify-content: flex-start;
     min-height: 60vh;
-    padding-top: 40px;
+    padding-top: 0px;
     gap: 0;
 }
 
@@ -781,11 +782,12 @@ body {
 .team-container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 20px;
 }
 
 .team-header {
     text-align: center;
-    margin-bottom: 80px;
+    margin-bottom: 50px;
 }
 
 .section-title {
@@ -804,16 +806,20 @@ body {
 
 .team-content {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 60px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 40px;
     margin-top: 40px;
 }
 
 .team-member {
-    padding: 40px;
+    padding: 30px;
     border: 2px solid #333333;
     background: rgba(255, 255, 255, 0.02);
     transition: all 0.3s ease;
+    min-height: 200px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
 }
 
 .team-member:hover {
@@ -823,14 +829,14 @@ body {
 }
 
 .member-name {
-    font-size: 1.8rem;
+    font-size: 1.6rem;
     font-weight: 600;
     margin-bottom: 10px;
     color: #ffffff;
 }
 
 .member-role {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: #cccccc;
     margin-bottom: 20px;
     text-transform: uppercase;
@@ -838,9 +844,10 @@ body {
 }
 
 .member-bio {
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1.6;
     color: #e0e0e0;
+    flex-grow: 1;
 }
 
 /* ==========================================================================
@@ -850,12 +857,13 @@ body {
 .behind-scenes-container {
     max-width: 1200px;
     margin: 0 auto;
+    padding: 0 20px;
 }
 
 .behind-scenes-content {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 80px;
+    grid-template-columns: 1fr;
+    gap: 60px;
     margin-top: 40px;
 }
 
@@ -869,8 +877,8 @@ body {
 .process-item {
     display: flex;
     gap: 30px;
-    margin-bottom: 40px;
-    padding: 30px;
+    margin-bottom: 30px;
+    padding: 25px;
     border: 1px solid #333333;
     background: rgba(255, 255, 255, 0.02);
     transition: all 0.3s ease;
@@ -882,34 +890,35 @@ body {
 }
 
 .process-step {
-    font-size: 2rem;
+    font-size: 1.8rem;
     font-weight: 700;
     color: #ffffff;
-    min-width: 60px;
+    min-width: 50px;
+    flex-shrink: 0;
 }
 
 .process-info h4 {
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     font-weight: 600;
     margin-bottom: 10px;
     color: #ffffff;
 }
 
 .process-info p {
-    font-size: 1rem;
+    font-size: 0.95rem;
     line-height: 1.6;
     color: #cccccc;
 }
 
 .insight-item {
-    margin-bottom: 30px;
-    padding: 25px;
+    margin-bottom: 25px;
+    padding: 20px;
     border-left: 4px solid #ffffff;
     background: rgba(255, 255, 255, 0.05);
 }
 
 .insight-item p {
-    font-size: 1.1rem;
+    font-size: 1rem;
     line-height: 1.6;
     color: #e0e0e0;
     font-style: italic;
@@ -1386,45 +1395,53 @@ body {
     max-width: 1200px;
     margin: 0 auto;
     text-align: center;
+    padding: 0 20px;
 }
 
 .about-content {
     display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: 80px;
+    grid-template-columns: 1fr;
+    gap: 50px;
     margin-top: 40px;
     align-items: start;
+}
+
+.about-text {
+    text-align: left;
 }
 
 .about-text p {
     font-size: 1.1rem;
     line-height: 1.8;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
     color: #e0e0e0;
-    text-align: left;
+    max-width: 100%;
 }
 
 .large-text {
-    font-size: 1.5rem;
+    font-size: 1.4rem;
     font-weight: 500;
     color: #ffffff;
-    margin-bottom: 40px;
+    margin-bottom: 30px;
+    text-align: center;
 }
 
 .project-details {
     display: flex;
     flex-direction: column;
     gap: 20px;
-    padding: 40px;
+    padding: 30px;
     border: 2px solid #333333;
     background: rgba(255, 255, 255, 0.02);
+    margin: 0 auto;
+    max-width: 500px;
 }
 
 .detail-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 15px 0;
+    padding: 12px 0;
     border-bottom: 1px solid #333333;
 }
 
@@ -1433,14 +1450,14 @@ body {
 }
 
 .detail-label {
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #cccccc;
     font-weight: 500;
     letter-spacing: 0.1em;
 }
 
 .detail-value {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #ffffff;
     font-weight: 600;
     text-align: right;
@@ -1666,7 +1683,13 @@ body {
     }
 
     .section {
-        padding: 160px 16px 40px 16px;
+        padding: 85px 15px 40px 15px;
+    }
+    
+    .team-container,
+    .about-container,
+    .behind-scenes-container {
+        padding: 0 15px;
     }
 
     .hero-container {
@@ -1706,16 +1729,28 @@ body {
     }
 
     .team-content {
-        flex-direction: column;
-        gap: 40px;
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .team-member {
+        padding: 25px;
+        min-height: auto;
     }
 
     .behind-scenes-content {
-        padding: 20px;
+        grid-template-columns: 1fr;
+        gap: 40px;
     }
 
     .about-content {
-        padding: 20px;
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    
+    .project-details {
+        margin: 0;
+        max-width: none;
     }
 
     .about-text p {
@@ -2010,7 +2045,7 @@ body {
     }
 
     .large-text {
-        font-size: 2.5rem;
+        font-size: 1.2rem;
     }
 
     .cta-container {
@@ -2096,6 +2131,189 @@ body {
 /* ==========================================================================
    Accessibility and Reduced Motion
    ========================================================================== */
+
+/* ==========================================================================
+   Desktop Responsive Breakpoints
+   ========================================================================== */
+
+/* Large Desktop Screens (1440px and up) */
+@media (min-width: 1440px) {
+    .section {
+        padding: 110px 40px 80px 40px;
+    }
+    
+    .team-container,
+    .about-container,
+    .behind-scenes-container {
+        padding: 0 40px;
+    }
+    .team-content {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 60px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .team-member {
+        padding: 40px;
+        min-height: 250px;
+    }
+    
+    .member-name {
+        font-size: 1.8rem;
+    }
+    
+    .member-role {
+        font-size: 1rem;
+    }
+    
+    .member-bio {
+        font-size: 1rem;
+    }
+    
+    .about-content {
+        grid-template-columns: 2fr 1fr;
+        gap: 80px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+    
+    .about-text {
+        text-align: left;
+    }
+    
+    .large-text {
+        font-size: 1.6rem;
+        text-align: left;
+    }
+    
+    .project-details {
+        max-width: none;
+        margin: 0;
+    }
+    
+    .behind-scenes-content {
+        grid-template-columns: 2fr 1fr;
+        gap: 80px;
+    }
+    
+    .process-item {
+        padding: 30px;
+        margin-bottom: 40px;
+    }
+    
+    .process-step {
+        font-size: 2rem;
+        min-width: 60px;
+    }
+    
+    .process-info h4 {
+        font-size: 1.2rem;
+    }
+    
+    .process-info p {
+        font-size: 1rem;
+    }
+    
+    .insight-item {
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    
+    .insight-item p {
+        font-size: 1.1rem;
+    }
+}
+
+/* Medium Desktop Screens (1024px to 1439px) */
+@media (min-width: 1024px) and (max-width: 1439px) {
+    .section {
+        padding: 100px 30px 70px 30px;
+    }
+    
+    .team-container,
+    .about-container,
+    .behind-scenes-container {
+        padding: 0 30px;
+    }
+    .team-content {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 50px;
+    }
+    
+    .team-member {
+        padding: 35px;
+        min-height: 220px;
+    }
+    
+    .member-name {
+        font-size: 1.7rem;
+    }
+    
+    .about-content {
+        grid-template-columns: 3fr 2fr;
+        gap: 60px;
+    }
+    
+    .about-text {
+        text-align: left;
+    }
+    
+    .large-text {
+        font-size: 1.5rem;
+        text-align: left;
+    }
+    
+    .project-details {
+        max-width: none;
+        margin: 0;
+    }
+    
+    .behind-scenes-content {
+        grid-template-columns: 2fr 1fr;
+        gap: 70px;
+    }
+}
+
+/* Small Desktop/Large Tablet (768px to 1023px) */
+@media (min-width: 769px) and (max-width: 1023px) {
+    .section {
+        padding: 95px 25px 60px 25px;
+    }
+    
+    .team-container,
+    .about-container,
+    .behind-scenes-container {
+        padding: 0 25px;
+    }
+    .team-content {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 40px;
+    }
+    
+    .about-content {
+        grid-template-columns: 1fr;
+        gap: 40px;
+    }
+    
+    .about-text {
+        text-align: left;
+    }
+    
+    .large-text {
+        text-align: center;
+    }
+    
+    .project-details {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .behind-scenes-content {
+        grid-template-columns: 1fr;
+        gap: 50px;
+    }
+}
 
 @media (prefers-reduced-motion: reduce) {
     * {

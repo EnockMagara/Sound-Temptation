@@ -271,6 +271,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setupBranchingChoice();
         setupAudioUnlock();
         setupGlobalMediaPlayer(); // Initialize global media player
+        setupHorizontalScroll(); // Initialize horizontal scroll for sounds section
     }
 
     // Setup audio unlock functionality
@@ -1244,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ctaBtn.addEventListener('click', function() {
             showSection('sounds');
             updateActiveNav('sounds');
-            window.scrollTo(0, 0);
+            // Remove forced scroll to top to allow natural scrolling
         });
     }
 });
