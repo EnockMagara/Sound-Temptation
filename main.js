@@ -379,34 +379,99 @@ document.addEventListener('DOMContentLoaded', function() {
     function setupHomepageScroll() {
         if (!homeScrollContainer) return;
 
-        // Enable horizontal scrolling with mouse wheel
+        let isScrolling = false;
+        let scrollTimeout;
+
+        // Smooth horizontal scrolling with mouse wheel
         homeScrollContainer.addEventListener('wheel', function(e) {
             if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
                 e.preventDefault();
-                this.scrollLeft += e.deltaY;
+                
+                // Use requestAnimationFrame for smooth scrolling
+                if (!isScrolling) {
+                    isScrolling = true;
+                    requestAnimationFrame(() => {
+                        // Smooth scroll with easing
+                        const scrollAmount = e.deltaY * 0.8; // Reduce sensitivity for smoother feel
+                        this.scrollBy({
+                            left: scrollAmount,
+                            behavior: 'auto' // We handle smoothness manually
+                        });
+                        isScrolling = false;
+                    });
+                }
             }
-        });
+        }, { passive: false });
 
-        // Touch support for mobile
+        // Enhanced touch support for mobile with momentum
         let startX = 0;
+        let startY = 0;
         let scrollStartX = 0;
+        let isTouch = false;
+        let touchStartTime = 0;
+        let lastTouchX = 0;
+        let velocity = 0;
 
         homeScrollContainer.addEventListener('touchstart', function(e) {
             startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
             scrollStartX = this.scrollLeft;
-        });
+            isTouch = true;
+            touchStartTime = Date.now();
+            lastTouchX = startX;
+            velocity = 0;
+            
+            // Clear any ongoing momentum
+            clearTimeout(scrollTimeout);
+        }, { passive: true });
 
         homeScrollContainer.addEventListener('touchmove', function(e) {
-            if (!startX) return;
+            if (!isTouch) return;
+            
             const currentX = e.touches[0].clientX;
+            const currentY = e.touches[0].clientY;
             const diffX = startX - currentX;
-            this.scrollLeft = scrollStartX + diffX;
-        });
+            const diffY = startY - currentY;
+            
+            // Only handle horizontal scrolling if it's primarily horizontal movement
+            if (Math.abs(diffX) > Math.abs(diffY)) {
+                e.preventDefault();
+                
+                // Calculate velocity for momentum
+                const currentTime = Date.now();
+                const timeDiff = currentTime - touchStartTime;
+                if (timeDiff > 0) {
+                    velocity = (lastTouchX - currentX) / timeDiff;
+                }
+                lastTouchX = currentX;
+                
+                // Smooth scroll update
+                const newScrollLeft = scrollStartX + diffX;
+                this.scrollLeft = Math.max(0, Math.min(newScrollLeft, this.scrollWidth - this.clientWidth));
+            }
+        }, { passive: false });
 
         homeScrollContainer.addEventListener('touchend', function() {
+            if (!isTouch) return;
+            
+            // Add momentum scrolling
+            if (Math.abs(velocity) > 0.5) {
+                const momentumDistance = velocity * 300; // Adjust multiplier for desired momentum
+                const targetScroll = this.scrollLeft + momentumDistance;
+                
+                this.scrollTo({
+                    left: Math.max(0, Math.min(targetScroll, this.scrollWidth - this.clientWidth)),
+                    behavior: 'smooth'
+                });
+            }
+            
+            // Reset touch state
             startX = 0;
+            startY = 0;
             scrollStartX = 0;
-        });
+            isTouch = false;
+            velocity = 0;
+        }, { passive: true });
 
         // Keyboard navigation for homepage only
         document.addEventListener('keydown', function(e) {
@@ -421,17 +486,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Update active home panel based on scroll position
+        // Update active home panel based on scroll position with throttling
+        let scrollTimer;
         homeScrollContainer.addEventListener('scroll', function() {
-            const scrollLeft = this.scrollLeft;
-            const panelWidth = window.innerWidth;
-            const newPanel = Math.round(scrollLeft / panelWidth);
+            // Throttle scroll events for better performance
+            if (scrollTimer) clearTimeout(scrollTimer);
+            
+            scrollTimer = setTimeout(() => {
+                const scrollLeft = this.scrollLeft;
+                const panelWidth = window.innerWidth;
+                const newPanel = Math.round(scrollLeft / panelWidth);
 
-            if (newPanel !== currentHomePanel && newPanel >= 0 && newPanel < homePanels.length) {
-                currentHomePanel = newPanel;
-                updateActiveHomePanel();
-            }
-        });
+                if (newPanel !== currentHomePanel && newPanel >= 0 && newPanel < homePanels.length) {
+                    currentHomePanel = newPanel;
+                    updateActiveHomePanel();
+                }
+            }, 50); // Throttle to every 50ms for smoother experience
+        }, { passive: true });
     }
 
     // Navigate between home panels
@@ -444,14 +515,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Scroll to specific home panel
+    // Scroll to specific home panel with enhanced smoothness
     function scrollToHomePanel(panelIndex) {
         if (!homeScrollContainer) return;
         const targetScrollLeft = homePanels[panelIndex].offsetLeft;
+        
+        // Use smooth scrolling with snap-to behavior
         homeScrollContainer.scrollTo({
             left: targetScrollLeft,
             behavior: 'smooth'
         });
+        
+        // Ensure we snap to the exact position after animation
+        setTimeout(() => {
+            if (Math.abs(homeScrollContainer.scrollLeft - targetScrollLeft) > 10) {
+                homeScrollContainer.scrollLeft = targetScrollLeft;
+            }
+        }, 500);
     }
 
     // Update active home panel state

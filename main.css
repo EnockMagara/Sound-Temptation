@@ -242,9 +242,22 @@ body {
     flex-direction: row;
     flex-wrap: nowrap;
     overflow-x: scroll;
+    overflow-y: hidden;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
     align-items: center;
+    /* Improve scrolling performance */
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
+    /* Hide scrollbar for cleaner look */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.home-scroll-container::-webkit-scrollbar {
+    display: none;
 }
 
 .home-panel {
