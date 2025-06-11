@@ -170,6 +170,115 @@ body {
 }
 
 /* ==========================================================================
+   Homepage Horizontal Scroll Styles
+   ========================================================================== */
+
+.home-page {
+    overflow: hidden;
+}
+
+.home-scroll-container {
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    align-items: center;
+}
+
+.home-panel {
+    flex-shrink: 0;
+    flex-grow: 0;
+    flex-basis: 100vw;
+    scroll-snap-align: start;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.panel-title {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.panel-content {
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.experience-features, .journey-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.feature, .step {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px 20px;
+    border-radius: 8px;
+    font-size: 1rem;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.scroll-hint {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* Mobile responsive styles for homepage */
+@media (max-width: 768px) {
+    .panel-title {
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    
+    .panel-content {
+        padding: 0 20px;
+    }
+    
+    .experience-features, .journey-steps {
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    .feature, .step {
+        padding: 12px 16px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .panel-title {
+        font-size: 1.6rem;
+        margin-bottom: 15px;
+    }
+    
+    .panel-content p {
+        font-size: 1rem;
+    }
+    
+    .feature, .step {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ==========================================================================
    Audio Player Styles
    ========================================================================== */
 
@@ -820,6 +929,8 @@ body {
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
+    position: relative;
+    overflow: hidden;
 }
 
 .team-member:hover {
@@ -829,18 +940,20 @@ body {
 }
 
 .member-name {
-    font-size: 1.6rem;
+    font-size: 1.7rem;
     font-weight: 600;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     color: #ffffff;
+    line-height: 1.2;
 }
 
 .member-role {
-    font-size: 0.9rem;
+    font-size: 0.95rem;
     color: #cccccc;
-    margin-bottom: 20px;
+    margin-bottom: 25px;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
+    line-height: 1.4;
 }
 
 .member-bio {
@@ -848,6 +961,35 @@ body {
     line-height: 1.6;
     color: #e0e0e0;
     flex-grow: 1;
+}
+
+.member-image {
+    position: absolute;
+    top: 50%;
+    right: 30px;
+    transform: translateY(-50%);
+    width: 110px;
+    height: 110px;
+    object-fit: cover;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1;
+    opacity: 0.85;
+}
+
+.team-member:hover .member-image {
+    opacity: 1;
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-50%) scale(1.05);
+}
+
+.member-info {
+    position: relative;
+    z-index: 2;
+    flex-grow: 1;
+    max-width: calc(100% - 140px);
+    padding-right: 20px;
 }
 
 /* ==========================================================================
@@ -869,6 +1011,71 @@ body {
 
 .video-section {
     margin-bottom: 40px;
+}
+
+.bhs-overlay-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    z-index: 10;
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+.bhs-overlay-image:hover {
+    opacity: 0.8;
+}
+
+.overlay-play-indicator {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 11;
+    text-align: center;
+    color: white;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.7);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.play-icon-overlay {
+    font-size: 4rem;
+    margin-bottom: 10px;
+    background: rgba(0, 0, 0, 0.6);
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px auto;
+    backdrop-filter: blur(5px);
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.overlay-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 8px 16px;
+    border-radius: 20px;
+    backdrop-filter: blur(5px);
+}
+
+.overlay-play-indicator:hover .play-icon-overlay {
+    background: rgba(255, 255, 255, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.1);
+}
+
+.overlay-play-indicator:hover .overlay-text {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .video-container {
@@ -1669,7 +1876,7 @@ body {
     border-radius: 20px;
     font-size: 0.8rem;
     color: #fff;
-    display: flex; /* Always visible now */
+    display: none; /* Hidden by default */
     align-items: center;
     gap: 8px;
     z-index: 1000;
@@ -1772,9 +1979,30 @@ body {
         min-height: auto;
     }
 
+    .member-image {
+        width: 80px;
+        height: 80px;
+        right: 15px;
+    }
+
     .behind-scenes-content {
         grid-template-columns: 1fr;
         gap: 40px;
+    }
+
+    .bhs-overlay-image {
+        border-radius: 6px;
+    }
+
+    .play-icon-overlay {
+        font-size: 3rem;
+        width: 60px;
+        height: 60px;
+    }
+
+    .overlay-text {
+        font-size: 0.9rem;
+        padding: 6px 12px;
     }
 
     .about-content {
@@ -2160,6 +2388,12 @@ body {
         padding: 8px 15px;
         font-size: 0.8rem;
     }
+
+    .member-image {
+        width: 60px;
+        height: 60px;
+        right: 10px;
+    }
 }
 
 /* ==========================================================================
@@ -2189,8 +2423,8 @@ body {
     }
     
     .team-member {
-        padding: 40px;
-        min-height: 250px;
+        padding: 35px 40px;
+        min-height: 230px;
     }
     
     .member-name {
@@ -2203,6 +2437,17 @@ body {
     
     .member-bio {
         font-size: 1rem;
+    }
+
+    .member-image {
+        width: 130px;
+        height: 130px;
+        right: 35px;
+    }
+
+    .member-info {
+        max-width: calc(100% - 170px);
+        padding-right: 25px;
     }
     
     .about-content {
@@ -2276,8 +2521,13 @@ body {
     }
     
     .team-member {
-        padding: 35px;
-        min-height: 220px;
+        padding: 30px 35px;
+        min-height: 210px;
+    }
+
+    .member-info {
+        max-width: calc(100% - 150px);
+        padding-right: 20px;
     }
     
     .member-name {

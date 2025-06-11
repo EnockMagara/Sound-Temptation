@@ -12,6 +12,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const narrativeSections = document.querySelectorAll('.narrative-section');
     const playButtons = document.querySelectorAll('.play-btn');
 
+    // Homepage specific elements
+    const homeScrollContainer = document.querySelector('.home-scroll-container');
+    const homePanels = document.querySelectorAll('.home-panel');
+    let currentHomePanel = 0;
+
     // New Global Audio Player elements
     const globalVolumeControlContainer = document.getElementById('volumeControlContainer');
     const globalVolumeIcon = document.getElementById('volumeIcon');
@@ -51,6 +56,17 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleFastForwardMode() {
         isFastForwardMode = !isFastForwardMode;
         fastForwardIndicator.classList.toggle('active');
+        
+        // Only show/hide based on current section
+        const activeSection = document.querySelector('.section.active');
+        if (activeSection && activeSection.id === 'sounds') {
+            if (isFastForwardMode) {
+                fastForwardIndicator.style.display = 'flex';
+            } else {
+                fastForwardIndicator.style.display = 'none';
+            }
+        }
+        
         updateNavigationButtons();
     }
 
@@ -162,6 +178,14 @@ document.addEventListener('DOMContentLoaded', function() {
         initializeSoundsSection();
     }
 
+    // Initialize homepage horizontal scroll
+    if (document.getElementById('home') && homeScrollContainer) {
+        initializeHomepageScroll();
+    }
+
+    // Initialize behind scenes overlay functionality
+    initializeBehindScenesOverlay();
+
     // --- Navigation (Global) ---
     navItems.forEach(item => {
         item.addEventListener('click', function() {
@@ -194,7 +218,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (globalVolumeControlContainer) {
                     globalVolumeControlContainer.style.display = 'flex'; // Show volume control on story book
                 }
-                // Auto-advance indicator is always visible in story book now
+                // Show auto-advance indicator in story book
+                if (autoAdvanceIndicator) {
+                    autoAdvanceIndicator.style.display = 'flex';
+                }
+                // Show fast-forward indicator if active
+                if (fastForwardIndicator && isFastForwardMode) {
+                    fastForwardIndicator.style.display = 'flex';
+                }
             } else {
                 console.log('Navigating away from Story Book section. Stopping audio.');
                 stopCurrentAudio(); // Stop any audio playing when leaving sounds section
@@ -207,6 +238,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Hide auto-advance indicator outside story book
                 if (autoAdvanceIndicator) {
                     autoAdvanceIndicator.style.display = 'none';
+                }
+                // Hide fast-forward indicator outside story book
+                if (fastForwardIndicator) {
+                    fastForwardIndicator.style.display = 'none';
                 }
             }
             
@@ -262,6 +297,102 @@ document.addEventListener('DOMContentLoaded', function() {
     
 
     
+    // --- Homepage Horizontal Scroll Logic ---
+    function initializeHomepageScroll() {
+        console.log('Initializing Homepage horizontal scroll...');
+        setupHomepageScroll();
+    }
+
+    // Setup homepage horizontal scroll functionality
+    function setupHomepageScroll() {
+        if (!homeScrollContainer) return;
+
+        // Enable horizontal scrolling with mouse wheel
+        homeScrollContainer.addEventListener('wheel', function(e) {
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                e.preventDefault();
+                this.scrollLeft += e.deltaY;
+            }
+        });
+
+        // Touch support for mobile
+        let startX = 0;
+        let scrollStartX = 0;
+
+        homeScrollContainer.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            scrollStartX = this.scrollLeft;
+        });
+
+        homeScrollContainer.addEventListener('touchmove', function(e) {
+            if (!startX) return;
+            const currentX = e.touches[0].clientX;
+            const diffX = startX - currentX;
+            this.scrollLeft = scrollStartX + diffX;
+        });
+
+        homeScrollContainer.addEventListener('touchend', function() {
+            startX = 0;
+            scrollStartX = 0;
+        });
+
+        // Keyboard navigation for homepage only
+        document.addEventListener('keydown', function(e) {
+            // Only handle keyboard navigation when on homepage
+            const activeSection = document.querySelector('.section.active');
+            if (activeSection && activeSection.id === 'home') {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const direction = e.key === 'ArrowRight' ? 1 : -1;
+                    navigateHomePanel(direction);
+                }
+            }
+        });
+
+        // Update active home panel based on scroll position
+        homeScrollContainer.addEventListener('scroll', function() {
+            const scrollLeft = this.scrollLeft;
+            const panelWidth = window.innerWidth;
+            const newPanel = Math.round(scrollLeft / panelWidth);
+
+            if (newPanel !== currentHomePanel && newPanel >= 0 && newPanel < homePanels.length) {
+                currentHomePanel = newPanel;
+                updateActiveHomePanel();
+            }
+        });
+    }
+
+    // Navigate between home panels
+    function navigateHomePanel(direction) {
+        const newPanel = currentHomePanel + direction;
+        if (newPanel >= 0 && newPanel < homePanels.length) {
+            currentHomePanel = newPanel;
+            scrollToHomePanel(currentHomePanel);
+            updateActiveHomePanel();
+        }
+    }
+
+    // Scroll to specific home panel
+    function scrollToHomePanel(panelIndex) {
+        if (!homeScrollContainer) return;
+        const targetScrollLeft = homePanels[panelIndex].offsetLeft;
+        homeScrollContainer.scrollTo({
+            left: targetScrollLeft,
+            behavior: 'smooth'
+        });
+    }
+
+    // Update active home panel state
+    function updateActiveHomePanel() {
+        homePanels.forEach((panel, index) => {
+            if (index === currentHomePanel) {
+                panel.classList.add('active');
+            } else {
+                panel.classList.remove('active');
+            }
+        });
+    }
+
     // --- Story Book Section Logic (Merged from sound.js) ---
     function initializeSoundsSection() {
         console.log('Initializing Story Book section...');
@@ -462,20 +593,24 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         document.addEventListener('keydown', function(e) {
-            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                e.preventDefault();
-                const direction = e.key === 'ArrowRight' ? 1 : -1;
-                
-                // Block forward navigation if auto-advance is enabled
-                if (autoAdvanceEnabled && direction > 0) {
-                    showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
-                    return;
+            // Only handle Story Book navigation when on sounds section
+            const activeSection = document.querySelector('.section.active');
+            if (activeSection && activeSection.id === 'sounds') {
+                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    const direction = e.key === 'ArrowRight' ? 1 : -1;
+                    
+                    // Block forward navigation if auto-advance is enabled
+                    if (autoAdvanceEnabled && direction > 0) {
+                        showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
+                        return;
+                    }
+                    
+                    navigateSection(direction);
+                } else if (e.key === ' ') {
+                    e.preventDefault();
+                    toggleCurrentAudio();
                 }
-                
-                navigateSection(direction);
-            } else if (e.key === ' ') {
-                e.preventDefault();
-                toggleCurrentAudio();
             }
         });
     }
@@ -1247,5 +1382,51 @@ document.addEventListener('DOMContentLoaded', function() {
             updateActiveNav('sounds');
             // Remove forced scroll to top to allow natural scrolling
         });
+    }
+
+    // Behind Scenes Overlay Functionality
+    function initializeBehindScenesOverlay() {
+        const overlayImage = document.querySelector('.bhs-overlay-image');
+        const playIndicator = document.querySelector('.overlay-play-indicator');
+        
+        if (overlayImage && playIndicator) {
+            // Function to hide overlay and show video
+            function hideOverlay() {
+                overlayImage.style.opacity = '0';
+                overlayImage.style.pointerEvents = 'none';
+                playIndicator.style.opacity = '0';
+                playIndicator.style.pointerEvents = 'none';
+                showNotification('Double-click anywhere on the video to restore the overlay');
+            }
+
+            // Function to show overlay
+            function showOverlay() {
+                overlayImage.style.opacity = '1';
+                overlayImage.style.pointerEvents = 'auto';
+                playIndicator.style.opacity = '1';
+                playIndicator.style.pointerEvents = 'auto';
+                showNotification('Overlay restored');
+            }
+
+            // Add click events to both overlay image and play indicator
+            overlayImage.addEventListener('click', hideOverlay);
+            playIndicator.addEventListener('click', hideOverlay);
+
+            // Add double-click event to video container to restore overlay
+            const videoContainer = document.querySelector('.video-container');
+            if (videoContainer) {
+                videoContainer.addEventListener('dblclick', function(e) {
+                    // Only restore if clicking on the container, not the overlay
+                    if (e.target === this || e.target.tagName === 'IFRAME') {
+                        showOverlay();
+                    }
+                });
+            }
+
+            // Add context menu prevention
+            overlayImage.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+            });
+        }
     }
 });

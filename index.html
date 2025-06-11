@@ -31,16 +31,54 @@
     <!-- =========================
          Home Section (Landing)
     ========================== -->
-    <section class="section active" id="home">
-        <div class="hero-container" style="justify-content: center; align-items: center; min-height: 60vh;">
-            <h1 class="main-title distressed-title" data-text="TEMPTATION" style="margin-bottom: 20px;">TEMPTATION</h1>
-            <div class="subtitle" style="margin-bottom: 40px;">A Sound Story</div>
-            <div class="cta-container" style="margin-top: 0;">
-                <div class="cta-text" style="text-align: center; margin-bottom: 18px; font-size: 1.1rem; letter-spacing: 0.05em; color: #cccccc;">Ready to confront temptation?</div>
-                <button class="cta-btn" data-target="sounds" style="font-size: 1.2rem; padding: 20px 50px;">
-                    <span class="cta-icon">🎧</span>
-                    <span class="cta-label">ENTER THE STORY</span>
-                </button>
+    <section class="section active home-page" id="home">
+        <div class="home-scroll-container">
+            <!-- Main Landing Panel -->
+            <div class="home-panel active" data-panel="0">
+                <div class="hero-container" style="justify-content: center; align-items: center; min-height: 60vh;">
+                    <h1 class="main-title distressed-title" data-text="TEMPTATION" style="margin-bottom: 20px;">TEMPTATION</h1>
+                    <div class="subtitle" style="margin-bottom: 40px;">A Sound Story</div>
+                    <div class="cta-container" style="margin-top: 0;">
+                        <div class="cta-text" style="text-align: center; margin-bottom: 18px; font-size: 1.1rem; letter-spacing: 0.05em; color: #cccccc;">Ready to confront temptation?</div>
+                        <button class="cta-btn" data-target="sounds" style="font-size: 1.2rem; padding: 20px 50px;">
+                            <span class="cta-icon">🎧</span>
+                            <span class="cta-label">ENTER THE STORY</span>
+                        </button>
+                    </div>
+                    <div class="scroll-hint" style="margin-top: 30px; color: #888; font-size: 0.9rem;">
+                        → Scroll right to explore more
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Additional panels for exploration -->
+            <div class="home-panel" data-panel="1">
+                <div class="hero-container" style="justify-content: center; align-items: center; min-height: 60vh;">
+                    <h2 class="panel-title grunge-title" data-text="THE EXPERIENCE">THE EXPERIENCE</h2>
+                    <div class="panel-content">
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; color: #cccccc;">An immersive audio narrative that challenges your spiritual resolve</p>
+                        <div class="experience-features">
+                            <div class="feature">🎧 Spatial Audio Design</div>
+                            <div class="feature">⏱️ 3:57 Minutes</div>
+                            <div class="feature">🌅 Sunday Morning Setting</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="home-panel" data-panel="2">
+                <div class="hero-container" style="justify-content: center; align-items: center; min-height: 60vh;">
+                    <h2 class="panel-title brush-title" data-text="THE JOURNEY">THE JOURNEY</h2>
+                    <div class="panel-content">
+                        <p style="font-size: 1.1rem; line-height: 1.6; margin-bottom: 20px; color: #cccccc;">Follow a man's internal struggle between comfort and conviction</p>
+                        <div class="journey-steps">
+                            <div class="step">⏰ 6 AM Wake-Up Call</div>
+                            <div class="step">🔔 Church Bells Calling</div>
+                            <div class="step">😈 Satan's Temptation</div>
+                            <div class="step">🙏 Divine Intervention</div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -56,25 +94,25 @@
             </div>
             <div class="team-content">
                 <div class="team-member">
+                    <img src="public/images/ahmed.jpeg" alt="Director" class="member-image">
                     <div class="member-info">
                         <h3 class="member-name brush-title reveal-text delay-1" data-text="DIRECTOR">DIRECTOR</h3>
                         <p class="member-role">Vision & Narrative</p>
-                        <p class="member-bio">Crafting the emotional journey through sound and story, exploring themes of desire and human complexity.</p>
-                </div>
+                    </div>
                 </div>
                 <div class="team-member">
+                    <img src="public/images/enock.jpeg" alt="Sound Designer" class="member-image">
                     <div class="member-info">
                         <h3 class="member-name distressed-title reveal-text delay-2" data-text="SOUND DESIGNER">SOUND DESIGNER</h3>
                         <p class="member-role">Audio Architecture</p>
-                        <p class="member-bio">Building immersive soundscapes that blur the line between reality and temptation.</p>
-                </div>
+                    </div>
                 </div>
                 <div class="team-member">
+                    <img src="public/images/mahlet.jpeg" alt="Narrative Writer" class="member-image">
                     <div class="member-info">
                         <h3 class="member-name grunge-title reveal-text delay-3" data-text="NARRATIVE WRITER">NARRATIVE WRITER</h3>
                         <p class="member-role">Story & Voice</p>
-                        <p class="member-bio">Weaving words that resonate with the universal experience of temptation and choice.</p>
-                </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -124,6 +162,11 @@
             <div class="behind-scenes-content">
                 <div class="video-section">
                     <div class="video-container">
+                        <img src="public/images/bhs.png" alt="Behind the Scenes" class="bhs-overlay-image">
+                        <div class="overlay-play-indicator">
+                            <div class="play-icon-overlay">▶</div>
+                            <div class="overlay-text">Click to play video</div>
+                        </div>
                         <iframe 
                             src="https://drive.google.com/file/d/1iwAK4X8exc-pHHD2l0LMtGU1Q5M-kFLE/preview" 
                             width="100%" 
@@ -404,7 +447,7 @@
     ========================== -->
     <div class="volume-control-container" id="volumeControlContainer">
         <div class="volume-icon" id="volumeIcon">🔊</div>
-        <input type="range" id="globalVolumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider-new">
+        <input type="range" id="globalVolumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider-new" title="Adjust volume" aria-label="Volume control">
     </div>
 
     <!-- =========================
@@ -424,7 +467,7 @@
                 <option value="2">2x</option>
             </select>
         </div>
-        <input type="range" id="globalSeekSlider" min="0" max="100" value="0" class="seek-slider">
+        <input type="range" id="globalSeekSlider" min="0" max="100" value="0" class="seek-slider" title="Seek through audio" aria-label="Audio timeline">
         <div class="time-display">
             <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
         </div>
