@@ -3,7 +3,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Global elements
     const navItems = document.querySelectorAll('.nav-item');
     const sections = document.querySelectorAll('.section');
-    const navigationIcon = document.getElementById('navigationIcon');
+
     const audioUnlockContainer = document.getElementById('audioUnlockContainer');
     const audioUnlockBtn = document.getElementById('audioUnlockBtn');
 
@@ -169,12 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
             showSection(targetId);
             updateActiveNav(targetId);
 
-            // Hide/Show navigation icon animation based on section
-            if (targetId === 'home') {
-                showNavigationIcon();
-            } else {
-                hideNavigationIcon();
-            }
+
 
             // If navigating to 'sounds' section, stop any currently playing audio
             if (targetId === 'sounds') {
@@ -265,19 +260,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Show navigation icon animation
-    function showNavigationIcon() {
-        if (navigationIcon) {
-            navigationIcon.classList.add('active');
-        }
-    }
-    
-    // Hide navigation icon animation
-    function hideNavigationIcon() {
-        if (navigationIcon) {
-            navigationIcon.classList.remove('active');
-        }
-    }
+
     
     // --- Story Book Section Logic (Merged from sound.js) ---
     function initializeSoundsSection() {
