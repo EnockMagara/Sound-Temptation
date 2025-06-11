@@ -2105,6 +2105,15 @@ body {
         right: 15px;
     }
 
+    .team-header {
+        margin-bottom: 30px;
+    }
+
+    .team-subtitle {
+        font-size: clamp(0.9rem, 3vw, 1.1rem);
+        margin-bottom: 20px;
+    }
+
     .behind-scenes-content {
         grid-template-columns: 1fr;
         gap: 40px;
@@ -2123,6 +2132,21 @@ body {
     .overlay-text {
         font-size: 0.9rem;
         padding: 6px 12px;
+    }
+
+    .process-summary {
+        padding: 0 10px;
+    }
+
+    .process-summary p {
+        font-size: 1rem;
+        line-height: 1.5;
+        margin-bottom: 16px;
+    }
+
+    .process-title {
+        font-size: clamp(1.8rem, 6vw, 2.5rem);
+        margin-bottom: 20px;
     }
 
     .about-content {
@@ -2170,6 +2194,29 @@ body {
     .hero-container {
         min-height: auto;
         padding-top: 20px;
+    }
+
+    /* Mobile scroll improvements for Team section */
+    #team {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+        padding: 80px 15px 40px 15px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Mobile scroll improvements for Behind Scenes section */
+    #behind-scenes {
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+        padding: 80px 15px 40px 15px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .behind-scenes-container {
+        padding: 0 10px;
+        margin-bottom: 40px;
     }
 
     .overview-container {
@@ -2547,6 +2594,25 @@ body {
         right: 10px;
     }
 
+    .team-header {
+        margin-bottom: 20px;
+    }
+
+    .team-subtitle {
+        font-size: 0.9rem;
+        margin-bottom: 15px;
+    }
+
+    .process-title {
+        font-size: clamp(1.5rem, 5vw, 2rem);
+        margin-bottom: 15px;
+    }
+
+    .process-summary p {
+        font-size: 0.9rem;
+        margin-bottom: 12px;
+    }
+
     /* Enhanced mobile burger menu for small screens */
     .nav {
         left: 15px;
@@ -2587,6 +2653,24 @@ body {
 
     .hero-container {
         padding-top: 10px;
+    }
+
+    /* Enhanced mobile scroll for very small screens - Team */
+    #team {
+        padding: 70px 10px 30px 10px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Enhanced mobile scroll for very small screens - Behind Scenes */
+    #behind-scenes {
+        padding: 70px 10px 30px 10px;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .behind-scenes-container {
+        padding: 0 5px;
     }
 }
 
