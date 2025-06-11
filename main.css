@@ -955,27 +955,7 @@ body {
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.3), 0 0 20px rgba(255, 255, 255, 0.1);
 }
 
-.distressed-title::before {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    color: rgba(255, 255, 255, 0.2);
-    z-index: -1;
-    filter: blur(2px);
-    transform: translate(2px, 2px);
-}
 
-.distressed-title::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    color: rgba(0, 0, 0, 0.3);
-    z-index: -1;
-    filter: blur(1px);
-    transform: translate(-1px, -1px);
-}
 
 .grunge-title {
     font-family: 'Butcherman', cursive;
@@ -996,18 +976,7 @@ body {
     z-index: 1;
 }
 
-.brush-title::before {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    color: transparent;
-    -webkit-text-stroke: 1px #ffffff;
-    text-stroke: 1px #ffffff;
-    z-index: -1;
-    filter: blur(0.5px);
-    transform: translate(-1px, -1px);
-}
+
 
 @keyframes brushStroke {
     0% { background-position: 0% 50%; }
@@ -1049,28 +1018,7 @@ body {
     animation: glitch 1s infinite linear alternate;
 }
 
-.glitch-title::before,
-.glitch-title::after {
-    content: attr(data-text);
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: inherit;
-}
 
-.glitch-title::before {
-    left: -2px;
-    text-shadow: 1px 0 #ff00ff;
-    animation: glitchBefore 1.5s infinite linear alternate-reverse;
-}
-
-.glitch-title::after {
-    left: 2px;
-    text-shadow: -1px 0 #00ffff;
-    animation: glitchAfter 1.5s infinite linear alternate;
-}
 
 @keyframes glitch {
     0% { transform: translate(0); }
@@ -1081,21 +1029,7 @@ body {
     100% { transform: translate(0); }
 }
 
-@keyframes glitchBefore {
-    0% { clip-path: inset(0 0 100% 0); }
-    25% { clip-path: inset(0 0 0 0); }
-    50% { clip-path: inset(0 0 100% 0); }
-    75% { clip-path: inset(0 0 0 0); }
-    100% { clip-path: inset(0 0 100% 0); }
-}
 
-@keyframes glitchAfter {
-    0% { clip-path: inset(100% 0 0 0); }
-    25% { clip-path: inset(0 0 0 0); }
-    50% { clip-path: inset(100% 0 0 0); }
-    75% { clip-path: inset(0 0 0 0); }
-    100% { clip-path: inset(100% 0 0 0); }
-}
 
 /* Home Page Specific Sections */
 .home-section {
