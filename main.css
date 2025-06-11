@@ -867,6 +867,40 @@ body {
     margin-top: 40px;
 }
 
+.video-section {
+    margin-bottom: 40px;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px solid #333333;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.video-container iframe {
+    width: 100%;
+    height: 400px;
+    border: none;
+}
+
+.process-summary {
+    text-align: left;
+    max-width: 800px;
+    margin: 20px auto 0;
+}
+
+.process-summary p {
+    font-size: 1.1rem;
+    line-height: 1.7;
+    color: #e0e0e0;
+    margin-bottom: 20px;
+}
+
 .process-title, .insights-title {
     font-size: 2rem;
     font-weight: 600;
