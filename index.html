@@ -17,24 +17,11 @@
     ========================== -->
     <nav class="nav">
         <div class="nav-item active" data-target="home">HOME</div>
-        <div class="nav-item" onclick="enterSounds()">SOUNDS</div>
+        <div class="nav-item" data-target="sounds">STORY BOOK</div>
         <div class="nav-item" data-target="team">TEAM</div>
         <div class="nav-item" data-target="about">ABOUT</div>
         <div class="nav-item" data-target="behind-scenes">BEHIND SCENES</div>
     </nav>
-
-    <!-- =========================
-         Global Audio Player (floating)
-    ========================== -->
-    <div class="audio-player">
-        <div class="audio-control" id="audioToggle">
-            <div class="audio-icon">
-                <div class="sound-wave"></div>
-                <div class="sound-wave"></div>
-                <div class="sound-wave"></div>
-            </div>
-        </div>
-    </div>
 
     <!-- =========================
          Navigation Icon Animation
@@ -61,22 +48,12 @@
          Home Section (Landing)
     ========================== -->
     <section class="section active" id="home">
-        <div class="hero-container">
-            <div class="title-stack">
-                <h1 class="main-title distressed-title reveal-text" data-text="TEMPTATION">TEMPTATION</h1>
-                <h1 class="main-title highlight grunge-title reveal-text delay-1" data-text="A SOUND">A SOUND</h1>
-                <h1 class="main-title brush-title reveal-text delay-2" data-text="STORY">STORY</h1>
-            </div>
-
-        </div>
-        
-
-
-        <!-- Call to Action -->
-        <div class="cta-container">
-            <div class="cta-content">
-                <p class="cta-text">Ready to confront temptation?</p>
-                <button class="cta-btn" onclick="enterStory()">
+        <div class="hero-container" style="justify-content: center; align-items: center; min-height: 60vh;">
+            <h1 class="main-title distressed-title" data-text="TEMPTATION" style="margin-bottom: 20px;">TEMPTATION</h1>
+            <div class="subtitle" style="margin-bottom: 40px;">A Sound Story</div>
+            <div class="cta-container" style="margin-top: 0;">
+                <div class="cta-text" style="text-align: center; margin-bottom: 18px; font-size: 1.1rem; letter-spacing: 0.05em; color: #cccccc;">Ready to confront temptation?</div>
+                <button class="cta-btn" data-target="sounds" style="font-size: 1.2rem; padding: 20px 50px;">
                     <span class="cta-icon">🎧</span>
                     <span class="cta-label">ENTER THE STORY</span>
                 </button>
@@ -208,7 +185,278 @@
         </div>
     </section>
 
+    <!-- =========================
+         Story Book Section (Horizontal Scroll)
+    ========================== -->
+    <section class="section sounds-page" id="sounds">
+        <div class="sounds-container">
+            <div class="horizontal-scroll-container">
+                <!-- Home Section -->
+                <div class="narrative-section home-section active" data-section="0">
+                    <div class="narrative-content">
+                        <div class="home-subtitle distressed-title reveal-text delay-1" data-text="A Visual Story">A Visual Story</div>
+                        <div class="home-description">
+                            <p>An immersive visual and audio narrative exploring the delicate dance between desire and restraint, choice and consequence.</p>
+                            <p>Journey through six panels of temptation, where every image tells a story and every sound carries weight.</p>
+                        </div>
+                        
+                        <!-- Audio Unlock Button -->
+                        <div class="audio-unlock-container" id="audioUnlockContainer">
+                            <p style="color: #cccccc; margin-bottom: 15px; font-size: 0.9rem;">Click to enable audio for the full experience:</p>
+                            <button class="audio-unlock-btn" id="audioUnlockBtn">
+                                <span class="unlock-icon">🔊</span>
+                                <span class="unlock-text">ENABLE AUDIO</span>
+                            </button>
+                        </div>
+                        
+                        <div class="home-instruction">
+                            <span>→ Scroll right to begin the story</span>
+                        </div>
+                    </div>
+                </div>
 
+                <!-- Panel 1 -->
+                <div class="narrative-section" data-section="1">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/1.png" alt="Panel 1" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="whisper">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="1">
+                            <source src="public/sounds/splits_mixdown1.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Panel 2 -->
+                <div class="narrative-section" data-section="2">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/2.png" alt="Panel 2" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="footsteps">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="2">
+                            <source src="public/sounds/splits_mixdown2.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Panel 3 -->
+                <div class="narrative-section" data-section="3">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/3.png" alt="Panel 3" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="marketplace">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="3">
+                            <source src="public/sounds/splits_mixdown3.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Panel 4 -->
+                <div class="narrative-section" data-section="4">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/4.png" alt="Panel 4" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="elevator">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="4">
+                            <source src="public/sounds/splits_mixdown4.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+
+                        <!-- Branching Choice -->
+                        <div class="branching-choice">
+                            <p class="choice-prompt">What does he do?</p>
+                            <div class="choice-buttons">
+                                <button class="choice-btn" data-choice="sleep">
+                                    <span class="choice-icon">🛌</span>
+                                    <span class="choice-text">SLEEP</span>
+                                </button>
+                                <button class="choice-btn" data-choice="pray">
+                                    <span class="choice-icon">🙏</span>
+                                    <span class="choice-text">PRAY</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ending: Sleep -->
+                <div class="narrative-section ending-sleep" data-section="5" style="display: none;">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/5.png" alt="Sleep Ending" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="restartStory()">Restart Story →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="d2">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="5">
+                            <source src="public/sounds/D2.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Ending: Pray -->
+                <div class="narrative-section ending-pray" data-section="6" style="display: none;">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/6.png" alt="Pray Ending" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="birdsong">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="6">
+                            <source src="public/sounds/splits_mixdown5.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Panel 7 -->
+                <div class="narrative-section" data-section="7">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/7.png" alt="Panel 7" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="mahlet">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="7">
+                            <source src="public/sounds/splits_mixdown6.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Panel 8 -->
+                <div class="narrative-section" data-section="8">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/8.png" alt="Panel 8" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="navigatePanel(1)">Next Panel →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="mahlet">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="8">
+                            <source src="public/sounds/splits_mixdown7.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+
+                <!-- Panel 9 -->
+                <div class="narrative-section" data-section="9">
+                    <div class="narrative-content">
+                        <div class="image-carousel">
+                            <img src="public/images/9.png" alt="Panel 9" class="story-image">
+                            <div class="panel-navigation">
+                                <button class="nav-btn prev-btn" onclick="navigatePanel(-1)">← Previous Panel</button>
+                                <button class="nav-btn next-btn" onclick="restartStory()">Restart Story →</button>
+                            </div>
+                        </div>
+                        <div class="audio-controls">
+                            <button class="play-btn" data-audio="mahlet">
+                                <span class="play-icon">▶</span>
+                                <span class="play-text">PLAY</span>
+                            </button>
+                        </div>
+                        <audio preload="metadata" data-section="9">
+                            <source src="public/sounds/splits_mixdown8.mp3" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================
+         Volume Control (Bottom Left)
+    ========================== -->
+    <div class="volume-control-container" id="volumeControlContainer">
+        <div class="volume-icon" id="volumeIcon">🔊</div>
+        <input type="range" id="globalVolumeSlider" min="0" max="1" step="0.01" value="1" class="volume-slider-new">
+    </div>
+
+    <!-- =========================
+         Global Media Player (Bottom Right)
+    ========================== -->
+    <div class="global-media-player" id="globalMediaPlayer">
+        <button class="global-play-pause-btn" id="globalPlayPauseBtn">▶</button>
+        <input type="range" id="globalSeekSlider" min="0" max="100" value="0" class="seek-slider">
+        <div class="time-display">
+            <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+        </div>
+    </div>
 
     <!-- Main JavaScript file -->
     <script src="main.js"></script>
