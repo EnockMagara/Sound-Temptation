@@ -1873,26 +1873,38 @@ body {
     position: fixed;
     top: 70px;
     right: 20px;
-    background: rgba(0, 150, 255, 0.2);
     padding: 8px 15px;
     border-radius: 20px;
     font-size: 0.8rem;
     color: #fff;
-    display: none;
+    display: flex; /* Always visible now */
     align-items: center;
     gap: 8px;
     z-index: 1000;
     cursor: pointer;
     transition: all 0.3s ease;
+    /* Default OFF state styling */
+    background: rgba(128, 128, 128, 0.3);
+    opacity: 0.7;
 }
 
 .auto-advance-mode.active {
-    display: flex;
+    /* ON state styling */
+    background: rgba(0, 150, 255, 0.2);
+    opacity: 1;
 }
 
 .auto-advance-mode:hover {
-    background: rgba(0, 150, 255, 0.3);
     transform: scale(1.05);
+}
+
+.auto-advance-mode:hover:not(.active) {
+    background: rgba(128, 128, 128, 0.4);
+    opacity: 0.9;
+}
+
+.auto-advance-mode.active:hover {
+    background: rgba(0, 150, 255, 0.3);
 }
 
 .auto-advance-mode .icon {

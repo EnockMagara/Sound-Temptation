@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function() {
     let hasCompletedStory = false; // Track if user has completed the story
     let isFastForwardMode = false; // Track fast-forward mode state
     let autoAdvanceEnabled = true; // Track if auto-advance is enabled
+    let isRestarting = false; // Track if story is being restarted
 
     // Add fast-forward mode indicator to the DOM
     const fastForwardIndicator = document.createElement('div');
@@ -60,6 +61,20 @@ document.addEventListener('DOMContentLoaded', function() {
         autoAdvanceIndicator.innerHTML = autoAdvanceEnabled ? 
             '<span class="icon">🔄</span> Auto-Advance: ON' : 
             '<span class="icon">⏸️</span> Auto-Advance: OFF';
+        
+        // If enabling auto-advance, ensure proper state
+        if (autoAdvanceEnabled) {
+            console.log('Auto-advance enabled - resetting state for current section');
+            // If current audio has already ended and we're enabling auto-advance,
+            // make sure the state is properly reset for potential future auto-advance
+            const currentNarrativeSection = narrativeSections[currentSection];
+            if (currentNarrativeSection) {
+                const currentAudioElement = currentNarrativeSection.querySelector('audio');
+                if (currentAudioElement && currentAudioElement.ended) {
+                    console.log('Current audio has already ended - auto-advance ready for next play');
+                }
+            }
+        }
     }
 
     // Function to update navigation buttons state
@@ -174,10 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (globalVolumeControlContainer) {
                     globalVolumeControlContainer.style.display = 'flex'; // Show volume control on story book
                 }
-                // Show auto-advance indicator in story book
-                if (autoAdvanceIndicator) {
-                    autoAdvanceIndicator.style.display = 'flex';
-                }
+                // Auto-advance indicator is always visible in story book now
             } else {
                 console.log('Navigating away from Story Book section. Stopping audio.');
                 stopCurrentAudio(); // Stop any audio playing when leaving sounds section
@@ -338,26 +350,60 @@ document.addEventListener('DOMContentLoaded', function() {
     // Restart story function
     window.restartStory = function() {
         console.log('Restarting story...');
-        document.querySelector('.ending-sleep').style.display = 'none';
-        document.querySelector('.ending-pray').style.display = 'none';
-
+        
+        // Set restart flag to prevent observer interference
+        isRestarting = true;
+        
+        // Comprehensive cleanup
+        stopAllAudio(); // Stop ALL audio elements, not just current one
+        
+        // Reset all story state variables
         currentSection = 0;
         audioCompleted = false;
         canNavigate = true;
-        stopCurrentAudio();
+        hasCompletedStory = false;
+        
+        // Reset auto-scroll flag to prevent conflicts
+        isAutoScrolling = false;
+        
+        // Hide ending sections
+        const endingSleep = document.querySelector('.ending-sleep');
+        const endingPray = document.querySelector('.ending-pray');
+        if (endingSleep) endingSleep.style.display = 'none';
+        if (endingPray) endingPray.style.display = 'none';
 
-        scrollToSection(0, true);
-        updateActiveNarrativeSection();
-
+        // Hide branching choice
         const branchingChoice = document.querySelector('.branching-choice');
         if (branchingChoice) {
             branchingChoice.style.display = 'none';
         }
 
+        // Ensure home section is visible
         const homeSection = document.querySelector('[data-section="0"]');
         if (homeSection) {
             homeSection.style.display = 'flex';
         }
+        
+        // Remove active class from all sections first
+        narrativeSections.forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        // Scroll to home section first
+        scrollToSection(0, true);
+        
+        // Delay the section activation to prevent multiple audio triggers
+        setTimeout(() => {
+            // Only update the active class without triggering audio autoplay
+            narrativeSections[0].classList.add('active');
+            updateNavigationButtons();
+            
+            // Clear restart flag after everything is settled
+            setTimeout(() => {
+                isRestarting = false;
+            }, 200);
+        }, 600); // Wait for scroll animation to complete
+        
         showNotification('Story reset. Choose your path again...');
     }
 
@@ -476,30 +522,37 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Update active narrative section and related states
-    function updateActiveNarrativeSection() {
-        console.log('Updating active narrative section. Current section:', currentSection);
-        stopCurrentAudio(); // ✅ STOP previous audio before activating new panel
+    function updateActiveNarrativeSection(skipAutoplay = false) {
+        console.log('Updating active narrative section. Current section:', currentSection, 'skipAutoplay:', skipAutoplay);
+        
+        if (!skipAutoplay) {
+            stopCurrentAudio(); // ✅ STOP previous audio before activating new panel
+        }
+        
         narrativeSections.forEach((section, index) => {
             if (index === currentSection) {
                 section.classList.add('active');
 
-                // Autoplay audio for current panel if it has audio and context is unlocked
-                const audio = section.querySelector('audio');
-                const playButton = section.querySelector('.play-btn');
-                if (audio && playButton) {
-                    console.log('Audio element and play button found for panel', section.dataset.section);
-                    if (audio.paused && audioContextUnlocked) {
-                        console.log('Attempting autoplay for panel', section.dataset.section, '. Audio context unlocked.');
-                        playAudio(audio, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
-                    } else if (!audio.paused) {
-                        console.log('Audio for panel', section.dataset.section, 'is already playing.');
-                        updatePlayButtonState(playButton, audio, true);
-                    } else if (!audioContextUnlocked) {
-                        console.log('Audio context not unlocked for panel', section.dataset.section, 'autoplay.');
-                        showNotification('Please enable audio first (bottom left icon)!');
+                // Only autoplay if not skipping autoplay (used during restart)
+                if (!skipAutoplay) {
+                    // Autoplay audio for current panel if it has audio and context is unlocked
+                    const audio = section.querySelector('audio');
+                    const playButton = section.querySelector('.play-btn');
+                    if (audio && playButton) {
+                        console.log('Audio element and play button found for panel', section.dataset.section);
+                        if (audio.paused && audioContextUnlocked) {
+                            console.log('Attempting autoplay for panel', section.dataset.section, '. Audio context unlocked.');
+                            playAudio(audio, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
+                        } else if (!audio.paused) {
+                            console.log('Audio for panel', section.dataset.section, 'is already playing.');
+                            updatePlayButtonState(playButton, audio, true);
+                        } else if (!audioContextUnlocked) {
+                            console.log('Audio context not unlocked for panel', section.dataset.section, 'autoplay.');
+                            showNotification('Please enable audio first (bottom left icon)!');
+                        }
+                    } else {
+                        console.log('No audio or play button found for panel', section.dataset.section);
                     }
-                } else {
-                    console.log('No audio or play button found for panel', section.dataset.section);
                 }
 
             } else {
@@ -584,6 +637,10 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('playAudio called for:', audioElement.src, '. currentAudio:', currentAudio ? currentAudio.src : 'none');
         currentAudio = audioElement;
         currentPlayButton = button;
+        
+        // Remove any existing ended event listeners to prevent duplicates
+        audioElement.onended = null;
+        
         audioElement.play().then(() => {
             console.log('Audio playback started successfully for:', audioElement.src);
             updatePlayButtonState(button, audioElement, true);
@@ -647,6 +704,36 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         currentAudio = null; // Clear current audio reference
         currentPlayButton = null; // Clear currentPlayButton reference
+    }
+
+    // Stop ALL audio elements (for restart functionality)
+    function stopAllAudio() {
+        console.log('stopAllAudio called - stopping all audio elements');
+        // Stop all audio elements in the document
+        document.querySelectorAll('audio').forEach(audio => {
+            if (!audio.paused) {
+                console.log('Stopping audio:', audio.src);
+                audio.pause();
+                audio.currentTime = 0;
+            }
+        });
+        
+        // Reset all play buttons
+        document.querySelectorAll('.play-btn').forEach(button => {
+            resetAudioButton(button);
+        });
+        
+        // Clear current references
+        currentAudio = null;
+        currentPlayButton = null;
+        
+        // Reset global media player
+        if (globalMediaPlayer) {
+            globalPlayPauseBtn.textContent = '▶';
+            globalSeekSlider.value = 0;
+            currentTimeDisplay.textContent = '0:00';
+            totalTimeDisplay.textContent = '0:00';
+        }
     }
 
     // Toggle play/pause for current section audio (for spacebar)
@@ -1025,8 +1112,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (nextSection && nextSectionIndex < narrativeSections.length) {
             console.log('Auto-advancing to section:', nextSectionIndex);
             
-            // Reset audio completed flag for the new section
+            // Reset flags for the new section
             audioCompleted = false;
+            canNavigate = false; // Prevent manual navigation during auto-advance
             
             // Navigate to next panel
             currentSection = nextSectionIndex;
@@ -1044,13 +1132,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 currentPlayButton = nextPlayButton;
                 updateGlobalMediaPlayer(nextAudioElement);
                 
-                // Play the audio immediately
-                playAudio(nextAudioElement, nextPlayButton, 
-                         nextPlayButton.querySelector('.play-icon'), 
-                         nextPlayButton.querySelector('.play-text'));
+                // Small delay to ensure smooth transition
+                setTimeout(() => {
+                    playAudio(nextAudioElement, nextPlayButton, 
+                             nextPlayButton.querySelector('.play-icon'), 
+                             nextPlayButton.querySelector('.play-text'));
+                }, 100);
             } else if (!audioContextUnlocked) {
                 console.log('Audio context not unlocked - cannot auto-play next panel');
                 showNotification('Audio context not enabled - please click play to continue');
+                canNavigate = true; // Allow manual navigation if audio context is locked
             }
         } else {
             console.log('No valid next section found for auto-advance');
@@ -1068,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting) {
+                if (entry.isIntersecting && !isRestarting) {
                     const activeSection = entry.target; // The currently active section
                     const sectionIndex = Array.from(narrativeSections).indexOf(activeSection);
                     console.log('Intersection Observer: Section', sectionIndex, 'is intersecting.');
