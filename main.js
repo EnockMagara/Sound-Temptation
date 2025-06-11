@@ -3,6 +3,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // Global elements
     const navItems = document.querySelectorAll('.nav-item');
     const sections = document.querySelectorAll('.section');
+    
+    // Burger menu elements
+    const burgerMenu = document.getElementById('burgerMenu');
+    const navItemsContainer = document.getElementById('navItems');
+    const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
 
     const audioUnlockContainer = document.getElementById('audioUnlockContainer');
     const audioUnlockBtn = document.getElementById('audioUnlockBtn');
@@ -185,6 +190,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize behind scenes overlay functionality
     initializeBehindScenesOverlay();
+
+    // --- Burger Menu Setup ---
+    function setupBurgerMenu() {
+        if (burgerMenu && navItemsContainer) {
+            burgerMenu.addEventListener('click', function() {
+                // Toggle burger menu active state
+                this.classList.toggle('active');
+                
+                // Toggle mobile menu visibility
+                navItemsContainer.classList.toggle('mobile-menu-open');
+                
+                // Toggle backdrop
+                if (mobileMenuBackdrop) {
+                    mobileMenuBackdrop.classList.toggle('active');
+                }
+                
+                // Prevent body scroll when menu is open
+                if (navItemsContainer.classList.contains('mobile-menu-open')) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = '';
+                }
+            });
+
+            // Close menu when clicking navigation items
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    closeMobileMenu();
+                });
+            });
+
+            // Close menu when clicking backdrop
+            if (mobileMenuBackdrop) {
+                mobileMenuBackdrop.addEventListener('click', function() {
+                    closeMobileMenu();
+                });
+            }
+
+            // Close menu when clicking outside (on larger content)
+            document.addEventListener('click', function(e) {
+                if (!burgerMenu.contains(e.target) && !navItemsContainer.contains(e.target)) {
+                    closeMobileMenu();
+                }
+            });
+
+            // Close menu on window resize to desktop size
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    closeMobileMenu();
+                }
+            });
+        }
+    }
+
+    function closeMobileMenu() {
+        if (burgerMenu && navItemsContainer) {
+            burgerMenu.classList.remove('active');
+            navItemsContainer.classList.remove('mobile-menu-open');
+            if (mobileMenuBackdrop) {
+                mobileMenuBackdrop.classList.remove('active');
+            }
+            document.body.style.overflow = '';
+        }
+    }
+
+    // Initialize burger menu
+    setupBurgerMenu();
 
     // --- Navigation (Global) ---
     navItems.forEach(item => {
@@ -962,10 +1034,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Handle branching choice from Panel 4
         if (currentNarrativeSection.dataset.section === '4' && direction === 1) {
-            console.log('Branching choice from Panel 4 detected.');
+            console.log('Branching choice from Panel 4 detected via manual navigation.');
             const branchingChoice = currentNarrativeSection.querySelector('.branching-choice');
             if (branchingChoice) {
                 branchingChoice.style.display = 'flex';
+                console.log('Branching choice shown via manual navigation');
+                showNotification('Choose your path...');
+            } else {
+                console.log('ERROR: Branching choice element not found in Panel 4 (manual navigation)');
             }
             return;
         }
@@ -1210,7 +1286,12 @@ document.addEventListener('DOMContentLoaded', function() {
         globalSeekSlider.value = (currentAudio.currentTime / currentAudio.duration) * 100 || 0;
         currentTimeDisplay.textContent = formatTime(currentAudio.currentTime);
         totalTimeDisplay.textContent = formatTime(currentAudio.duration);
-        if (globalMediaPlayer) globalMediaPlayer.style.display = 'flex'; // Ensure global player is visible
+        
+        // Only show global media player if we're in the Story Book section
+        const activeSection = document.querySelector('.section.active');
+        if (globalMediaPlayer && activeSection && activeSection.id === 'sounds') {
+            globalMediaPlayer.style.display = 'flex';
+        }
     }
 
     // Helper to format time
@@ -1238,6 +1319,10 @@ document.addEventListener('DOMContentLoaded', function() {
             const branchingChoice = currentNarrativeSection.querySelector('.branching-choice');
             if (branchingChoice) {
                 branchingChoice.style.display = 'flex';
+                console.log('Branching choice should now be visible');
+                showNotification('Choose your path...');
+            } else {
+                console.log('ERROR: Branching choice element not found in Panel 4');
             }
             return;
         }
@@ -1311,7 +1396,11 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.log('Intersection Observer: Found audio and play button for new active section.');
                             currentAudio = newAudioElement;
                             currentPlayButton = newPlayButton;
-                            updateGlobalMediaPlayer(newAudioElement); // Update global player
+                            // Only update global media player if we're in the Story Book section
+                            const activeSection = document.querySelector('.section.active');
+                            if (activeSection && activeSection.id === 'sounds') {
+                                updateGlobalMediaPlayer(newAudioElement); // Update global player
+                            }
                             
                             // Only autoplay if auto-advance is disabled or if audio context is unlocked and audio is paused
                             // This prevents conflicts with auto-advance functionality
