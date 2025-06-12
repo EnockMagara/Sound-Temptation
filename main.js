@@ -3,11 +3,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Global elements
     const navItems = document.querySelectorAll('.nav-item');
     const sections = document.querySelectorAll('.section');
-    
-    // Burger menu elements
-    const burgerMenu = document.getElementById('burgerMenu');
-    const navItemsContainer = document.getElementById('navItems');
-    const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
 
     const audioUnlockContainer = document.getElementById('audioUnlockContainer');
     const audioUnlockBtn = document.getElementById('audioUnlockBtn');
@@ -16,11 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const horizontalContainer = document.querySelector('.horizontal-scroll-container');
     const narrativeSections = document.querySelectorAll('.narrative-section');
     const playButtons = document.querySelectorAll('.play-btn');
-
-    // Homepage specific elements
-    const homeScrollContainer = document.querySelector('.home-scroll-container');
-    const homePanels = document.querySelectorAll('.home-panel');
-    let currentHomePanel = 0;
 
     // New Global Audio Player elements
     const globalVolumeControlContainer = document.getElementById('volumeControlContainer');
@@ -61,17 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleFastForwardMode() {
         isFastForwardMode = !isFastForwardMode;
         fastForwardIndicator.classList.toggle('active');
-        
-        // Only show/hide based on current section
-        const activeSection = document.querySelector('.section.active');
-        if (activeSection && activeSection.id === 'sounds') {
-            if (isFastForwardMode) {
-                fastForwardIndicator.style.display = 'flex';
-            } else {
-                fastForwardIndicator.style.display = 'none';
-            }
-        }
-        
         updateNavigationButtons();
     }
 
@@ -119,16 +98,16 @@ document.addEventListener('DOMContentLoaded', function() {
         if (prevBtn) {
             // Previous button is always enabled except for first section
             prevBtn.disabled = currentSection === 0;
+            prevBtn.style.display = 'block'; // Always show previous button
         }
 
         if (nextBtn) {
-            // Show next button only if:
-            // 1. Audio is completed OR
-            // 2. Fast-forward mode is active OR
-            // 3. User has completed the story before
-            if (audioCompleted || isFastForwardMode || hasCompletedStory) {
+            // Show next button only if auto-advance is OFF and audio is completed
+            if (!autoAdvanceEnabled && audioCompleted) {
+                nextBtn.style.display = 'block';
                 nextBtn.classList.add('visible');
             } else {
+                nextBtn.style.display = 'none';
                 nextBtn.classList.remove('visible');
             }
         }
@@ -180,90 +159,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Initialize sounds section (if it exists on the page)
     if (document.getElementById('sounds')) {
-        // Debug: Log all narrative sections and their indices
-        console.log('=== NARRATIVE SECTIONS DEBUG ===');
-        narrativeSections.forEach((section, index) => {
-            console.log(`Index ${index}: data-section="${section.dataset.section}", classes="${section.className}", display="${section.style.display}"`);
-        });
-        console.log('=== END DEBUG ===');
-        
         initializeSoundsSection();
     }
 
-    // Initialize homepage horizontal scroll
-    if (document.getElementById('home') && homeScrollContainer) {
-        initializeHomepageScroll();
-    }
-
-    // Initialize behind scenes overlay functionality
-    initializeBehindScenesOverlay();
-
-    // --- Burger Menu Setup ---
-    function setupBurgerMenu() {
-        if (burgerMenu && navItemsContainer) {
-            burgerMenu.addEventListener('click', function() {
-                // Toggle burger menu active state
-                this.classList.toggle('active');
-                
-                // Toggle mobile menu visibility
-                navItemsContainer.classList.toggle('mobile-menu-open');
-                
-                // Toggle backdrop
-                if (mobileMenuBackdrop) {
-                    mobileMenuBackdrop.classList.toggle('active');
-                }
-                
-                // Prevent body scroll when menu is open
-                if (navItemsContainer.classList.contains('mobile-menu-open')) {
-                    document.body.style.overflow = 'hidden';
-                } else {
-                    document.body.style.overflow = '';
-                }
-            });
-
-            // Close menu when clicking navigation items
-            navItems.forEach(item => {
-                item.addEventListener('click', function() {
-                    closeMobileMenu();
-                });
-            });
-
-            // Close menu when clicking backdrop
-            if (mobileMenuBackdrop) {
-                mobileMenuBackdrop.addEventListener('click', function() {
-                    closeMobileMenu();
-                });
-            }
-
-            // Close menu when clicking outside (on larger content)
-            document.addEventListener('click', function(e) {
-                if (!burgerMenu.contains(e.target) && !navItemsContainer.contains(e.target)) {
-                    closeMobileMenu();
-                }
-            });
-
-            // Close menu on window resize to desktop size
-            window.addEventListener('resize', function() {
-                if (window.innerWidth > 768) {
-                    closeMobileMenu();
-                }
-            });
-        }
-    }
-
-    function closeMobileMenu() {
-        if (burgerMenu && navItemsContainer) {
-            burgerMenu.classList.remove('active');
-            navItemsContainer.classList.remove('mobile-menu-open');
-            if (mobileMenuBackdrop) {
-                mobileMenuBackdrop.classList.remove('active');
-            }
-            document.body.style.overflow = '';
-        }
-    }
-
-    // Initialize burger menu
-    setupBurgerMenu();
+    // Setup video overlay functionality globally
+    setupVideoOverlay();
 
     // --- Navigation (Global) ---
     navItems.forEach(item => {
@@ -271,8 +171,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const targetId = this.getAttribute('data-target');
             showSection(targetId);
             updateActiveNav(targetId);
-
-
 
             // If navigating to 'sounds' section, stop any currently playing audio
             if (targetId === 'sounds') {
@@ -297,14 +195,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (globalVolumeControlContainer) {
                     globalVolumeControlContainer.style.display = 'flex'; // Show volume control on story book
                 }
-                // Show auto-advance indicator in story book
-                if (autoAdvanceIndicator) {
-                    autoAdvanceIndicator.style.display = 'flex';
-                }
-                // Show fast-forward indicator if active
-                if (fastForwardIndicator && isFastForwardMode) {
-                    fastForwardIndicator.style.display = 'flex';
-                }
+                // Auto-advance indicator is always visible in story book now
             } else {
                 console.log('Navigating away from Story Book section. Stopping audio.');
                 stopCurrentAudio(); // Stop any audio playing when leaving sounds section
@@ -318,10 +209,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (autoAdvanceIndicator) {
                     autoAdvanceIndicator.style.display = 'none';
                 }
-                // Hide fast-forward indicator outside story book
-                if (fastForwardIndicator) {
-                    fastForwardIndicator.style.display = 'none';
-                }
+            }
+            
+            // Pause YouTube video when leaving behind-scenes section
+            const currentActiveSection = document.querySelector('.section.active');
+            if (currentActiveSection && currentActiveSection.id === 'behind-scenes' && targetId !== 'behind-scenes') {
+                pauseYouTubeVideo();
             }
             
             // Add click feedback
@@ -343,24 +236,58 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Show specific section
     function showSection(targetId) {
+        console.log('Showing section:', targetId);
+        
+        // Pause YouTube video when leaving behind-scenes section
+        const currentActiveSection = document.querySelector('.section.active');
+        if (currentActiveSection && currentActiveSection.id === 'behind-scenes' && targetId !== 'behind-scenes') {
+            pauseYouTubeVideo();
+        }
+        
         sections.forEach(section => {
             if (section.id === targetId) {
                 section.classList.add('active');
+                // Reset any existing transitions
                 section.style.opacity = '0';
                 section.style.transform = 'translateY(20px)';
                 
-                setTimeout(() => {
-                    section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
-                    section.style.opacity = '1';
-                    section.style.transform = 'translateY(0)';
-                }, 10);
+                // Force a reflow
+                void section.offsetWidth;
+                
+                // Add transition and show section
+                section.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                section.style.opacity = '1';
+                section.style.transform = 'translateY(0)';
+                
+                // Special handling for sounds section
+                if (targetId === 'sounds') {
+                    console.log('Initializing Story Book section...');
+                    stopCurrentAudio();
+                    currentSection = 0;
+                    updateActiveNarrativeSection();
+                    if (audioUnlockContainer) {
+                        audioUnlockContainer.style.display = !audioContextUnlocked ? 'flex' : 'none';
+                    }
+                    if (globalMediaPlayer) {
+                        globalMediaPlayer.style.display = 'flex';
+                    }
+                    if (globalVolumeControlContainer) {
+                        globalVolumeControlContainer.style.display = 'flex';
+                    }
+                }
             } else {
                 section.classList.remove('active');
-                section.style.opacity = '';
-                section.style.transform = '';
-                section.style.transition = '';
+                section.style.opacity = '0';
+                section.style.transform = 'translateY(20px)';
+                section.style.transition = 'none';
             }
         });
+        
+        // Update active navigation state
+        updateActiveNav(targetId);
+        
+        // Scroll to top of the page
+        window.scrollTo(0, 0);
     }
     
     // Update active navigation state
@@ -374,184 +301,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-
-    
-    // --- Homepage Horizontal Scroll Logic ---
-    function initializeHomepageScroll() {
-        console.log('Initializing Homepage horizontal scroll...');
-        setupHomepageScroll();
-    }
-
-    // Setup homepage horizontal scroll functionality
-    function setupHomepageScroll() {
-        if (!homeScrollContainer) return;
-
-        let isScrolling = false;
-        let scrollTimeout;
-
-        // Smooth horizontal scrolling with mouse wheel
-        homeScrollContainer.addEventListener('wheel', function(e) {
-            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-                e.preventDefault();
-                
-                // Use requestAnimationFrame for smooth scrolling
-                if (!isScrolling) {
-                    isScrolling = true;
-                    requestAnimationFrame(() => {
-                        // Smooth scroll with easing
-                        const scrollAmount = e.deltaY * 0.8; // Reduce sensitivity for smoother feel
-                        this.scrollBy({
-                            left: scrollAmount,
-                            behavior: 'auto' // We handle smoothness manually
-                        });
-                        isScrolling = false;
-                    });
-                }
-            }
-        }, { passive: false });
-
-        // Enhanced touch support for mobile with momentum
-        let startX = 0;
-        let startY = 0;
-        let scrollStartX = 0;
-        let isTouch = false;
-        let touchStartTime = 0;
-        let lastTouchX = 0;
-        let velocity = 0;
-
-        homeScrollContainer.addEventListener('touchstart', function(e) {
-            startX = e.touches[0].clientX;
-            startY = e.touches[0].clientY;
-            scrollStartX = this.scrollLeft;
-            isTouch = true;
-            touchStartTime = Date.now();
-            lastTouchX = startX;
-            velocity = 0;
-            
-            // Clear any ongoing momentum
-            clearTimeout(scrollTimeout);
-        }, { passive: true });
-
-        homeScrollContainer.addEventListener('touchmove', function(e) {
-            if (!isTouch) return;
-            
-            const currentX = e.touches[0].clientX;
-            const currentY = e.touches[0].clientY;
-            const diffX = startX - currentX;
-            const diffY = startY - currentY;
-            
-            // Only handle horizontal scrolling if it's primarily horizontal movement
-            if (Math.abs(diffX) > Math.abs(diffY)) {
-                e.preventDefault();
-                
-                // Calculate velocity for momentum
-                const currentTime = Date.now();
-                const timeDiff = currentTime - touchStartTime;
-                if (timeDiff > 0) {
-                    velocity = (lastTouchX - currentX) / timeDiff;
-                }
-                lastTouchX = currentX;
-                
-                // Smooth scroll update
-                const newScrollLeft = scrollStartX + diffX;
-                this.scrollLeft = Math.max(0, Math.min(newScrollLeft, this.scrollWidth - this.clientWidth));
-            }
-        }, { passive: false });
-
-        homeScrollContainer.addEventListener('touchend', function() {
-            if (!isTouch) return;
-            
-            // Add momentum scrolling
-            if (Math.abs(velocity) > 0.5) {
-                const momentumDistance = velocity * 300; // Adjust multiplier for desired momentum
-                const targetScroll = this.scrollLeft + momentumDistance;
-                
-                this.scrollTo({
-                    left: Math.max(0, Math.min(targetScroll, this.scrollWidth - this.clientWidth)),
-                    behavior: 'smooth'
-                });
-            }
-            
-            // Reset touch state
-            startX = 0;
-            startY = 0;
-            scrollStartX = 0;
-            isTouch = false;
-            velocity = 0;
-        }, { passive: true });
-
-        // Keyboard navigation for homepage only
-        document.addEventListener('keydown', function(e) {
-            // Only handle keyboard navigation when on homepage
-            const activeSection = document.querySelector('.section.active');
-            if (activeSection && activeSection.id === 'home') {
-                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    const direction = e.key === 'ArrowRight' ? 1 : -1;
-                    navigateHomePanel(direction);
-                }
-            }
-        });
-
-        // Update active home panel based on scroll position with throttling
-        let scrollTimer;
-        homeScrollContainer.addEventListener('scroll', function() {
-            // Throttle scroll events for better performance
-            if (scrollTimer) clearTimeout(scrollTimer);
-            
-            scrollTimer = setTimeout(() => {
-                const scrollLeft = this.scrollLeft;
-                const panelWidth = window.innerWidth;
-                const newPanel = Math.round(scrollLeft / panelWidth);
-
-                if (newPanel !== currentHomePanel && newPanel >= 0 && newPanel < homePanels.length) {
-                    currentHomePanel = newPanel;
-                    updateActiveHomePanel();
-                }
-            }, 50); // Throttle to every 50ms for smoother experience
-        }, { passive: true });
-    }
-
-    // Navigate between home panels
-    function navigateHomePanel(direction) {
-        const newPanel = currentHomePanel + direction;
-        if (newPanel >= 0 && newPanel < homePanels.length) {
-            currentHomePanel = newPanel;
-            scrollToHomePanel(currentHomePanel);
-            updateActiveHomePanel();
-        }
-    }
-
-    // Scroll to specific home panel with enhanced smoothness
-    function scrollToHomePanel(panelIndex) {
-        if (!homeScrollContainer) return;
-        const targetScrollLeft = homePanels[panelIndex].offsetLeft;
-        
-        // Use smooth scrolling with snap-to behavior
-        homeScrollContainer.scrollTo({
-            left: targetScrollLeft,
-            behavior: 'smooth'
-        });
-        
-        // Ensure we snap to the exact position after animation
-        setTimeout(() => {
-            if (Math.abs(homeScrollContainer.scrollLeft - targetScrollLeft) > 10) {
-                homeScrollContainer.scrollLeft = targetScrollLeft;
-            }
-        }, 500);
-    }
-
-    // Update active home panel state
-    function updateActiveHomePanel() {
-        homePanels.forEach((panel, index) => {
-            if (index === currentHomePanel) {
-                panel.classList.add('active');
-            } else {
-                panel.classList.remove('active');
-            }
-        });
-    }
-
     // --- Story Book Section Logic (Merged from sound.js) ---
     function initializeSoundsSection() {
         console.log('Initializing Story Book section...');
@@ -561,7 +310,7 @@ document.addEventListener('DOMContentLoaded', function() {
         setupBranchingChoice();
         setupAudioUnlock();
         setupGlobalMediaPlayer(); // Initialize global media player
-        setupHorizontalScroll(); // Initialize horizontal scroll for sounds section
+        setupVideoOverlay(); // Initialize video overlay functionality
     }
 
     // Setup audio unlock functionality
@@ -601,178 +350,179 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Function to show final page with moral
+    window.showFinalPage = function() {
+        console.log('Showing final page with moral');
+        stopCurrentAudio();
+        
+        // Hide all narrative sections
+        document.querySelectorAll('.narrative-section').forEach(section => {
+            section.style.display = 'none';
+            section.classList.remove('active');
+        });
+        
+        // Show final page
+        const finalPage = document.querySelector('.final-page');
+        if (finalPage) {
+            finalPage.style.display = 'flex';
+            finalPage.classList.add('active');
+        }
+        
+        // Prevent further navigation
+        currentSection = -1;
+        canNavigate = false;
+        
+        // Disable all navigation buttons
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.style.display = 'none';
+            btn.disabled = true;
+        });
+        
+        // Enable only the restart button
+        const restartBtn = document.querySelector('.restart-btn');
+        if (restartBtn) {
+            restartBtn.style.display = 'block';
+            restartBtn.disabled = false;
+        }
+        
+        // Show notification
+        showNotification('The story has ended. You can restart to explore the other path.');
+    };
+
     // Handle user choice
     function handleChoice(choice) {
         console.log('Handling choice:', choice);
-        
-        // Disable intersection observer during choice transition
-        isAutoScrolling = true;
-        
         stopCurrentAudio();
 
-        const currentNarrativeSection = narrativeSections[currentSection];
-        if (currentNarrativeSection) {
-            currentNarrativeSection.style.display = 'none';
-        }
+        // Hide all narrative sections before showing the target
+        document.querySelectorAll('.narrative-section').forEach(section => {
+            section.style.display = 'none';
+            section.classList.remove('active');
+        });
 
         let targetSection;
         if (choice === 'sleep') {
             targetSection = document.querySelector('.ending-sleep');
             showNotification('He chooses rest over communion...');
+            
+            // Completely hide and disable all panels after sleep ending
+            document.querySelectorAll('.narrative-section').forEach(section => {
+                if (parseInt(section.dataset.section) > 5) {
+                    section.style.display = 'none';
+                    section.classList.remove('active');
+                    section.style.visibility = 'hidden';
+                    section.style.position = 'absolute';
+                    section.style.pointerEvents = 'none';
+                    
+                    // Disable all navigation buttons
+                    const navButtons = section.querySelectorAll('.nav-btn');
+                    navButtons.forEach(btn => {
+                        btn.style.display = 'none';
+                        btn.disabled = true;
+                        btn.style.visibility = 'hidden';
+                        btn.style.pointerEvents = 'none';
+                    });
+                }
+            });
+            
+            // Set a flag to prevent auto-advance after sleep ending
+            window.isSleepEnding = true;
+            
+            // Disable auto-advance for sleep branch
+            autoAdvanceEnabled = false;
         } else if (choice === 'pray') {
-            targetSection = document.querySelector('.ending-pray');
+            // For pray branch, show panel 6 first
+            targetSection = document.querySelector('.narrative-section[data-section="6"]');
             showNotification('He chooses faith over flesh...');
+            
+            // Hide sleep branch panel
+            document.querySelectorAll('.narrative-section').forEach(section => {
+                if (section.classList.contains('ending-sleep')) {
+                    section.style.display = 'none';
+                    section.classList.remove('active');
+                    section.style.visibility = 'hidden';
+                    section.style.position = 'absolute';
+                    section.style.pointerEvents = 'none';
+                    
+                    // Disable navigation buttons
+                    const navButtons = section.querySelectorAll('.nav-btn');
+                    navButtons.forEach(btn => {
+                        btn.style.display = 'none';
+                        btn.disabled = true;
+                        btn.style.visibility = 'hidden';
+                        btn.style.pointerEvents = 'none';
+                    });
+                }
+            });
+            
+            // Reset sleep ending flag
+            window.isSleepEnding = false;
+            
+            // Enable auto-advance for pray branch
+            autoAdvanceEnabled = true;
         }
 
         if (targetSection) {
             targetSection.style.display = 'flex';
-            
-            // Update current section to the target section index
-            const targetSectionIndex = Array.from(narrativeSections).indexOf(targetSection);
-            console.log('Choice made:', choice, 'targetSectionIndex:', targetSectionIndex, 'targetSection dataset:', targetSection.dataset.section);
-            
-            if (targetSectionIndex !== -1) {
-                currentSection = targetSectionIndex;
-                console.log('Updated currentSection to:', currentSection);
-            } else {
-                console.error('Could not find targetSectionIndex for choice:', choice);
+            targetSection.classList.add('active');
+            targetSection.style.visibility = 'visible';
+            targetSection.style.position = 'relative';
+            targetSection.style.pointerEvents = 'auto';
+
+            // --- Ensure play button and audio are set up for this panel ---
+            const audio = targetSection.querySelector('audio');
+            const playButton = targetSection.querySelector('.play-btn');
+            if (audio && playButton) {
+                currentAudio = audio;
+                currentPlayButton = playButton;
+                updateGlobalMediaPlayer(audio);
+                updatePlayButtonState(playButton, audio, false); // Ensure play button is visible and reset
             }
-            
-            setTimeout(() => {
-                targetSection.scrollIntoView({
-                    behavior: 'smooth',
-                    inline: 'start'
-                });
-                
-                // Handle audio for both choices
-                if (audioContextUnlocked) {
-                    const audioElement = targetSection.querySelector('audio');
-                    const playButton = targetSection.querySelector('.play-btn');
+            // --- End setup ---
+
+            // Auto-play if enabled
+            if (audioContextUnlocked) {
+                audio.play().then(() => {
+                    updatePlayButtonState(playButton, audio, true);
+                    if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '⏸';
                     
-                    if (audioElement && playButton) {
-                        console.log('Found audio element for choice:', choice);
-                        console.log('Audio src:', audioElement.src || audioElement.currentSrc);
-                        console.log('Audio source elements:', audioElement.querySelectorAll('source'));
+                    // Add onended listener for auto-advance
+                    audio.onended = () => {
+                        updatePlayButtonState(playButton, audio, false);
+                        if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '▶';
+                        canNavigate = true;
+                        audioCompleted = true;
                         
-                        currentAudio = audioElement;
-                        currentPlayButton = playButton;
-                        updateGlobalMediaPlayer(audioElement);
-                        
+                        // For sleep branch, show final page immediately
                         if (choice === 'sleep') {
-                            console.log('Auto-playing alternative.mp3 for sleep choice');
-                            
-                            // Add event listener to return to first section when audio ends
-                            audioElement.addEventListener('ended', function sleepAudioEndHandler() {
-                                console.log('Sleep audio ended, returning to first section');
-                                showNotification('Returning to the beginning...');
-                                
-                                // Hide the sleep ending section
-                                targetSection.style.display = 'none';
-                                
-                                // Reset to first section
-                                currentSection = 0;
-                                audioCompleted = false;
-                                canNavigate = true;
-                                
-                                // Show and scroll to first section
-                                const firstSection = narrativeSections[0];
-                                if (firstSection) {
-                                    firstSection.style.display = 'flex';
-                                    scrollToSection(0);
-                                    updateActiveNarrativeSection();
-                                    updateNavigationButtons();
-                                }
-                                
-                                // Remove this event listener to prevent multiple triggers
-                                audioElement.removeEventListener('ended', sleepAudioEndHandler);
-                            }, { once: true });
-                            
-                        } else if (choice === 'pray') {
-                            console.log('Auto-playing audio for pray choice - story will continue');
-                            console.log('Pray choice: currentSection updated to:', currentSection);
-                            console.log('Pray choice: targetSectionIndex is:', targetSectionIndex);
-                            console.log('Pray choice: autoAdvanceEnabled is:', autoAdvanceEnabled);
-                            
-                            // For pray choice, ensure auto-advance continues the story
-                            audioCompleted = false;
-                            canNavigate = false; // Prevent manual navigation during auto-advance
-                            
-                            // Remove any existing ended listeners to prevent conflicts
-                            audioElement.onended = null;
-                            
-                            // Add event listener for auto-advance continuation
-                            audioElement.addEventListener('ended', function prayAudioEndHandler() {
-                                console.log('=== PRAY AUDIO ENDED ===');
-                                console.log('Current section when pray audio ended:', currentSection);
-                                console.log('Current narrative section dataset:', narrativeSections[currentSection].dataset.section);
-                                console.log('Auto-advance enabled:', autoAdvanceEnabled);
-                                
-                                audioCompleted = true;
-                                canNavigate = true;
-                                updateNavigationButtons();
-                                
-                                // Trigger auto-advance to next panel if enabled
-                                if (autoAdvanceEnabled) {
-                                    console.log('Calling autoAdvanceToNextPanel from pray audio end handler');
-                                    autoAdvanceToNextPanel();
-                                } else {
-                                    console.log('Auto-advance is disabled, not advancing');
-                                }
-                                
-                                // Remove this event listener to prevent multiple triggers
-                                audioElement.removeEventListener('ended', prayAudioEndHandler);
-                            }, { once: true });
+                            console.log('Sleep ending audio completed - showing final page');
+                            showFinalPage();
+                            return;
                         }
                         
-                        // For sleep and pray choices, we need to override the default playAudio behavior
-                        if (choice === 'sleep' || choice === 'pray') {
-                            // Manually handle the audio play without using playAudio function to avoid conflicts
-                            currentAudio = audioElement;
-                            currentPlayButton = playButton;
-                            
-                            audioElement.play().then(() => {
-                                console.log('Choice audio playback started successfully for:', audioElement.src);
-                                updatePlayButtonState(playButton, audioElement, true);
-                                canNavigate = false;
-                                audioCompleted = false;
-                                updateGlobalMediaPlayer(audioElement);
-                                updateNavigationButtons();
-                            }).catch(e => {
-                                console.error("Error playing choice audio:", e);
-                                showNotification('Failed to play audio. Please try again.');
-                            });
-                        } else {
-                            // For other cases, use normal playAudio function
-                            playAudio(audioElement, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
+                        // For pray branch, only show final page after panel 9
+                        if (choice === 'pray' && targetSection.dataset.section === '9') {
+                            console.log('Pray branch completed - showing final page');
+                            showFinalPage();
+                            return;
                         }
-                    }
-                } else {
-                    showNotification('Please enable audio first (bottom left icon)!');
-                }
-                
-                // Update active section and navigation
-                // First remove active class from all sections
-                narrativeSections.forEach(section => {
-                    section.classList.remove('active');
+                        
+                        // For pray branch, continue to next panel
+                        if (choice === 'pray' && autoAdvanceEnabled) {
+                            const nextSectionIndex = parseInt(targetSection.dataset.section) + 1;
+                            if (nextSectionIndex <= 9) { // Only advance up to panel 9
+                                currentSection = nextSectionIndex;
+                                scrollToSection(currentSection);
+                                updateActiveNarrativeSection(false, true);
+                            }
+                        }
+                    };
+                }).catch(error => {
+                    console.error('Error playing audio:', error);
+                    updatePlayButtonState(playButton, audio, false);
+                    if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '▶';
                 });
-                
-                // Add active class to the target section
-                targetSection.classList.add('active');
-                
-                // Force scroll to the target section to ensure proper positioning
-                scrollToSection(currentSection);
-                
-                console.log('Active section updated - currentSection is now:', currentSection);
-                console.log('Target section classList:', targetSection.classList.toString());
-                
-                updateNavigationButtons();
-                
-                // Re-enable intersection observer after choice transition is complete
-                setTimeout(() => {
-                    isAutoScrolling = false;
-                    console.log('Choice transition complete - intersection observer re-enabled');
-                }, 500);
-            }, 100);
+            }
         }
     }
 
@@ -870,10 +620,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         horizontalContainer.addEventListener('scroll', function() {
-            if (isAutoScrolling) {
-                console.log('Scroll event ignored - isAutoScrolling is true');
-                return;
-            }
+            if (isAutoScrolling) return;
 
             const scrollLeft = this.scrollLeft;
             const sectionWidth = window.innerWidth;
@@ -892,49 +639,28 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            if (newSection !== currentSection && newSection >= 0 && newSection < narrativeSections.length && !isAutoScrolling) {
+            if (newSection !== currentSection && newSection >= 0 && newSection < narrativeSections.length) {
                 console.log('Scroll detected. New section:', newSection, 'Old section:', currentSection);
-                console.log('isAutoScrolling status:', isAutoScrolling);
-                console.log('Audio completed status:', audioCompleted);
-                console.log('Can navigate status:', canNavigate);
-                
-                // Additional protection: Don't allow scroll changes during active audio playback in auto-advance mode
-                if (autoAdvanceEnabled && currentAudio && !currentAudio.paused && !audioCompleted) {
-                    console.log('Blocking scroll detection - audio is playing and auto-advance is active');
-                    
-                    // Force scroll back to correct position
-                    const targetScrollLeft = narrativeSections[currentSection].offsetLeft;
-                    if (Math.abs(this.scrollLeft - targetScrollLeft) > 50) {
-                        console.log('Forcing scroll back to correct position:', targetScrollLeft);
-                        this.scrollLeft = targetScrollLeft;
-                    }
-                    return;
-                }
-                
                 currentSection = newSection;
                 updateActiveNarrativeSection(); // This will handle the active class and potentially play audio
             }
         });
 
         document.addEventListener('keydown', function(e) {
-            // Only handle Story Book navigation when on sounds section
-            const activeSection = document.querySelector('.section.active');
-            if (activeSection && activeSection.id === 'sounds') {
-                if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
-                    e.preventDefault();
-                    const direction = e.key === 'ArrowRight' ? 1 : -1;
-                    
-                    // Block forward navigation if auto-advance is enabled
-                    if (autoAdvanceEnabled && direction > 0) {
-                        showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
-                        return;
-                    }
-                    
-                    navigateSection(direction);
-                } else if (e.key === ' ') {
-                    e.preventDefault();
-                    toggleCurrentAudio();
+            if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const direction = e.key === 'ArrowRight' ? 1 : -1;
+                
+                // Block forward navigation if auto-advance is enabled
+                if (autoAdvanceEnabled && direction > 0) {
+                    showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
+                    return;
                 }
+                
+                navigateSection(direction);
+            } else if (e.key === ' ') {
+                e.preventDefault();
+                toggleCurrentAudio();
             }
         });
     }
@@ -943,96 +669,156 @@ document.addEventListener('DOMContentLoaded', function() {
     function navigateSection(direction) {
         console.log('navigateSection called with direction:', direction, 'currentSection:', currentSection);
         
-        // Block forward navigation if auto-advance is enabled
-        if (autoAdvanceEnabled && direction > 0) {
-            showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
-            return;
-        }
+        // Stop current audio before navigating
+        stopCurrentAudio();
         
-        if (!canNavigate && direction > 0) {
-            showNotification('Please wait for the audio to finish before proceeding...');
-            return;
-        }
-
         const newSection = currentSection + direction;
         if (newSection >= 0 && newSection < narrativeSections.length) {
             currentSection = newSection;
             scrollToSection(currentSection);
-            updateActiveNarrativeSection(); // This will trigger playback on new panel
+            updateActiveNarrativeSection(false, false); // Don't autoplay when manually navigating
+            updateNavigationButtons();
         }
     }
 
     // Scroll to specific section
     function scrollToSection(sectionIndex, smooth = true) {
-        console.log('Scrolling to section:', sectionIndex, 'isAutoScrolling set to true');
-        if (!horizontalContainer) return;
-
-        isAutoScrolling = true;
-        const targetScrollLeft = narrativeSections[sectionIndex].offsetLeft;
+        console.log('scrollToSection called with index:', sectionIndex);
+        console.log('Total sections:', narrativeSections.length);
         
-        console.log('Target scroll position:', targetScrollLeft);
-        console.log('Current scroll position:', horizontalContainer.scrollLeft);
-
-        horizontalContainer.scrollTo({
-            left: targetScrollLeft,
-            behavior: smooth ? 'smooth' : 'auto'
+        // Hide all narrative sections
+        narrativeSections.forEach((section, idx) => {
+            console.log(`Section ${idx} before:`, section.style.display);
+            if (idx === sectionIndex) {
+                section.style.display = 'flex';
+                section.classList.add('active');
+                console.log(`Section ${idx} after:`, section.style.display, 'active class added');
+                
+                // Update global media player with new audio
+                const audio = section.querySelector('audio');
+                if (audio) {
+                    currentAudio = audio;
+                    updateGlobalMediaPlayer(audio);
+                }
+            } else {
+                section.style.display = 'none';
+                section.classList.remove('active');
+                console.log(`Section ${idx} after:`, section.style.display, 'active class removed');
+            }
         });
-
-        setTimeout(() => {
-            isAutoScrolling = false;
-            console.log('scrollToSection: isAutoScrolling set to false after 2000ms');
-        }, 2000);
+        
+        // No scrolling needed since panels are stacked, but keep the rest for compatibility
+        // Optionally, scroll to top
+        window.scrollTo(0, 0);
     }
 
-
     // Update active narrative section and related states
-    function updateActiveNarrativeSection(skipAutoplay = false, forceAutoplay = false) {
-        console.log('Updating active narrative section. Current section:', currentSection, 'skipAutoplay:', skipAutoplay, 'forceAutoplay:', forceAutoplay);
+    function updateActiveNarrativeSection(skipAutoplay = false, forceAutoplay = false, isSeamlessTransition = false) {
+        console.log('Updating active narrative section. Current section:', currentSection, 'skipAutoplay:', skipAutoplay, 'forceAutoplay:', forceAutoplay, 'isSeamlessTransition:', isSeamlessTransition);
         
-        if (!skipAutoplay) {
-            stopCurrentAudio(); // ✅ STOP previous audio before activating new panel
+        // Only stop current audio if not doing a seamless transition
+        if (!skipAutoplay && !isSeamlessTransition) {
+            stopCurrentAudio(); // Stop previous audio before activating new panel
         }
         
         narrativeSections.forEach((section, index) => {
             if (index === currentSection) {
                 section.classList.add('active');
-
+                section.style.display = 'flex';
+                
+                // Hide branching choice initially for panel 4
+                if (section.dataset.section === '4') {
+                    const branchingChoice = section.querySelector('.branching-choice');
+                    if (branchingChoice) {
+                        branchingChoice.style.display = 'none';
+                    }
+                }
+                
                 // Only autoplay if not skipping autoplay (used during restart)
                 if (!skipAutoplay) {
                     // Autoplay audio for current panel if it has audio and context is unlocked
                     const audio = section.querySelector('audio');
                     const playButton = section.querySelector('.play-btn');
+                    
                     if (audio && playButton) {
                         console.log('Audio element and play button found for panel', section.dataset.section);
-                        
                         // Update current audio references regardless of autoplay
                         currentAudio = audio;
                         currentPlayButton = playButton;
                         updateGlobalMediaPlayer(audio);
                         
-                        // Autoplay conditions:
-                        // 1. Force autoplay (from auto-advance) OR
-                        // 2. Auto-advance is disabled AND audio is paused AND context is unlocked
-                        if ((forceAutoplay || !autoAdvanceEnabled) && audio.paused && audioContextUnlocked) {
-                            const reason = forceAutoplay ? 'auto-advance requested' : 'auto-advance disabled';
-                            console.log(`Attempting autoplay for panel ${section.dataset.section}. Reason: ${reason}.`);
-                            playAudio(audio, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
-                        } else if (autoAdvanceEnabled && !forceAutoplay) {
-                            console.log('Auto-advance is enabled for panel', section.dataset.section, '. Skipping autoplay - will be handled by auto-advance.');
-                        } else if (!audio.paused) {
-                            console.log('Audio for panel', section.dataset.section, 'is already playing.');
-                            updatePlayButtonState(playButton, audio, true);
-                        } else if (!audioContextUnlocked) {
-                            console.log('Audio context not unlocked for panel', section.dataset.section, 'autoplay.');
-                            showNotification('Please enable audio first (bottom left icon)!');
+                        // Always attempt to autoplay if forceAutoplay is true or auto-advance is enabled
+                        if ((forceAutoplay || autoAdvanceEnabled) && audio.paused && audioContextUnlocked) {
+                            console.log('Attempting autoplay for panel', section.dataset.section);
+                            // Reset navigation flags before playing
+                            canNavigate = false;
+                            audioCompleted = false;
+                            
+                            // For seamless transitions, preload and play immediately
+                            if (isSeamlessTransition) {
+                                audio.preload = 'auto';
+                                audio.load(); // Force load to ensure readiness
+                            }
+                            
+                            audio.play().then(() => {
+                                updatePlayButtonState(playButton, audio, true);
+                                if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '⏸';
+                                
+                                // Add onended listener for auto-advance
+                                audio.onended = () => {
+                                    console.log('Audio ended for panel', section.dataset.section);
+                                    updatePlayButtonState(playButton, audio, false);
+                                    canNavigate = true;
+                                    audioCompleted = true;
+                                    
+                                    // Special handling for panel 4
+                                    if (section.dataset.section === '4') {
+                                        console.log('Panel 4 audio ended - showing branching choice');
+                                        const branchingChoice = section.querySelector('.branching-choice');
+                                        if (branchingChoice) {
+                                            branchingChoice.style.display = 'flex';
+                                        }
+                                        return; // Don't auto-advance, wait for user choice
+                                    }
+                                    
+                                    // Auto-advance to next panel for other panels
+                                    if (autoAdvanceEnabled) {
+                                        console.log('Auto-advance enabled, advancing to next panel');
+                                        const nextSectionIndex = currentSection + 1;
+                                        if (nextSectionIndex < narrativeSections.length) {
+                                            // Use requestAnimationFrame for smoother transition timing
+                                            requestAnimationFrame(() => {
+                                                // Seamless transition: prepare next audio immediately
+                                                const nextSection = narrativeSections[nextSectionIndex];
+                                                const nextAudio = nextSection.querySelector('audio');
+                                                
+                                                // Preload next audio for instant playback
+                                                if (nextAudio) {
+                                                    nextAudio.preload = 'auto';
+                                                    nextAudio.load();
+                                                }
+                                                
+                                                // Update current section
+                                                currentSection = nextSectionIndex;
+                                                
+                                                // Show next section with seamless transition
+                                                scrollToSection(currentSection);
+                                                updateActiveNarrativeSection(false, true, true); // isSeamlessTransition = true
+                                            });
+                                        }
+                                    }
+                                };
+                            }).catch(error => {
+                                console.error('Error playing audio:', error);
+                                updatePlayButtonState(playButton, audio, false);
+                                if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '▶';
+                            });
                         }
-                    } else {
-                        console.log('No audio or play button found for panel', section.dataset.section);
                     }
                 }
-
             } else {
                 section.classList.remove('active');
+                section.style.display = 'none';
             }
         });
     }
@@ -1055,19 +841,25 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Update play button state (icon and text)
-    function updatePlayButtonState(playButton, audioElement, isPlaying) {
-        console.log('updatePlayButtonState called. isPlaying:', isPlaying, 'for audio:', audioElement.src);
-        const playIcon = playButton.querySelector('.play-icon');
-        const playText = playButton.querySelector('.play-text');
-
+    function updatePlayButtonState(button, audio, isPlaying) {
+        if (!button || !audio) return;
+        
+        const playIcon = button.querySelector('.play-icon');
+        const playText = button.querySelector('.play-text');
+        
         if (isPlaying) {
-            playButton.classList.add('playing');
-            playIcon.textContent = '⏸';
-            playText.textContent = 'PAUSE';
+            button.classList.add('playing');
+            if (playIcon) playIcon.textContent = '⏸';
+            if (playText) playText.textContent = 'PAUSE';
         } else {
-            playButton.classList.remove('playing');
-            playIcon.textContent = '▶';
-            playText.textContent = 'PLAY';
+            button.classList.remove('playing');
+            if (playIcon) playIcon.textContent = '▶';
+            if (playText) playText.textContent = 'PLAY';
+        }
+        
+        // Update global play/pause button state
+        if (globalPlayPauseBtn) {
+            globalPlayPauseBtn.textContent = isPlaying ? '⏸' : '▶';
         }
     }
 
@@ -1108,52 +900,115 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Preload next audio for seamless transitions
+    function preloadNextAudio() {
+        if (autoAdvanceEnabled && currentSection + 1 < narrativeSections.length) {
+            const nextSection = narrativeSections[currentSection + 1];
+            const nextAudio = nextSection.querySelector('audio');
+            if (nextAudio) {
+                nextAudio.preload = 'auto';
+                nextAudio.load();
+                console.log('Preloaded next audio:', nextAudio.src);
+            }
+        }
+    }
+
     // Play audio logic
     function playAudio(audioElement, button, playIcon, playText) {
-        console.log('playAudio called for:', audioElement.src, '. currentAudio:', currentAudio ? currentAudio.src : 'none');
+        console.log('playAudio called for:', audioElement.src);
+        
+        // Store current audio and button references
         currentAudio = audioElement;
         currentPlayButton = button;
         
-        // Remove any existing ended event listeners to prevent duplicates
+        // Update global media player
+        updateGlobalMediaPlayer(audioElement);
+        
+        // Preload next audio for seamless auto-advance
+        preloadNextAudio();
+        
+        // Remove any existing onended listeners
         audioElement.onended = null;
         
-        audioElement.play().then(() => {
-            console.log('Audio playback started successfully for:', audioElement.src);
-            updatePlayButtonState(button, audioElement, true);
-            canNavigate = false;
-            audioCompleted = false;
-            updateGlobalMediaPlayer(audioElement);
-            updateNavigationButtons(); // Hide next button when audio starts
-        }).catch(e => {
-            console.error("Error playing audio:", e);
-            showNotification('Failed to play audio. Please try again.');
-        });
-
+        // Add new onended listener
         audioElement.onended = () => {
-            console.log('=== AUDIO ENDED ===');
             console.log('Audio ended for:', audioElement.src);
-            console.log('Current section when audio ended:', currentSection);
-            console.log('Current section data-section:', narrativeSections[currentSection] ? narrativeSections[currentSection].dataset.section : 'undefined');
-            
             updatePlayButtonState(button, audioElement, false);
             canNavigate = true;
             audioCompleted = true;
-            updateNavigationButtons(); // Show next button when audio ends
             
-            // If this is the last section, mark story as completed
-            if (currentSection === narrativeSections.length - 1) {
-                hasCompletedStory = true;
-                // Enable fast-forward mode after completing the story
-                if (!isFastForwardMode) {
-                    toggleFastForwardMode();
-                    showNotification('Fast-forward mode enabled! You can now navigate freely.');
-                }
+            // Check if this is an ending audio
+            const currentNarrativeSection = button.closest('.narrative-section');
+            if (currentNarrativeSection && 
+                (currentNarrativeSection.classList.contains('ending-sleep') || 
+                 currentNarrativeSection.classList.contains('ending-pray'))) {
+                console.log('Ending audio completed - showing final page');
+                // Small delay to ensure smooth transition
+                setTimeout(() => {
+                    showFinalPage();
+                }, 500);
+                return; // Don't proceed with auto-advance
             }
             
-            // Auto-advance to next panel after audio ends immediately
-            console.log('Calling autoAdvanceToNextPanel from audio end handler');
-            autoAdvanceToNextPanel();
+            // Update navigation buttons to show next button if auto-advance is disabled
+            updateNavigationButtons();
+            
+                                                // Auto-advance to next panel only if auto-advance is enabled and not in an ending
+                                    if (autoAdvanceEnabled && !window.isSleepEnding) {
+                                        console.log('Auto-advance enabled, advancing to next panel');
+                                        const nextSectionIndex = currentSection + 1;
+                                        if (nextSectionIndex < narrativeSections.length) {
+                                            // Use requestAnimationFrame for smoother transition timing
+                                            requestAnimationFrame(() => {
+                                                // Seamless transition: prepare next audio immediately
+                                                const nextSection = narrativeSections[nextSectionIndex];
+                                                const nextAudio = nextSection.querySelector('audio');
+                                                
+                                                // Preload next audio for instant playback
+                                                if (nextAudio) {
+                                                    nextAudio.preload = 'auto';
+                                                    nextAudio.load();
+                                                }
+                                                
+                                                // Update current section
+                                                currentSection = nextSectionIndex;
+                                                
+                                                // Show next section with seamless transition
+                                                scrollToSection(currentSection);
+                                                updateActiveNarrativeSection(false, true, true); // isSeamlessTransition = true
+                                            });
+                                        }
+                                    }
         };
+        
+        // Add timeupdate listener for media player sync
+        audioElement.ontimeupdate = () => {
+            if (globalSeekSlider) {
+                const progress = (audioElement.currentTime / audioElement.duration) * 100;
+                globalSeekSlider.value = progress;
+            }
+            if (currentTimeDisplay) {
+                currentTimeDisplay.textContent = formatTime(audioElement.currentTime);
+            }
+        };
+        
+        // Play the audio
+        audioElement.play().then(() => {
+            updatePlayButtonState(button, audioElement, true);
+            if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '⏸';
+            
+            // Reset navigation flags when audio starts playing
+            canNavigate = false;
+            audioCompleted = false;
+            
+            // Update navigation buttons to hide next button while audio is playing
+            updateNavigationButtons();
+        }).catch(error => {
+            console.error('Error playing audio:', error);
+            // Update button state even if play fails
+            updatePlayButtonState(button, audioElement, false);
+            if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '▶';
+        });
     }
 
     // Pause audio logic
@@ -1161,8 +1016,12 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('pauseAudio called for:', audioElement.src);
         audioElement.pause();
         updatePlayButtonState(button, audioElement, false);
-        canNavigate = true;
-        if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '▶'; // Update global player button
+        if (globalPlayPauseBtn) globalPlayPauseBtn.textContent = '▶';
+        
+        // Only update navigation flags if the audio hasn't completed
+        if (!audioCompleted) {
+            canNavigate = true;
+        }
     }
 
     // Reset audio button to initial state
@@ -1267,22 +1126,92 @@ document.addEventListener('DOMContentLoaded', function() {
         }, duration);
     }
 
+    // Function to handle panel navigation
+    function handlePanelNavigation(newSectionIndex) {
+        console.log('handlePanelNavigation called with newSectionIndex:', newSectionIndex);
+        
+        // Get the target section
+        const targetSection = narrativeSections[newSectionIndex];
+        if (!targetSection) {
+            console.log('Invalid section index:', newSectionIndex);
+            return;
+        }
+
+        // Hide all sections
+        narrativeSections.forEach(section => {
+            section.style.display = 'none';
+            section.classList.remove('active');
+        });
+
+        // Show target section
+        targetSection.style.display = 'flex';
+        targetSection.classList.add('active');
+
+        // Update current section
+        currentSection = newSectionIndex;
+
+        // Get audio elements
+        const newAudioElement = targetSection.querySelector('audio');
+        const newPlayButton = targetSection.querySelector('.play-btn');
+
+        if (newAudioElement && newPlayButton) {
+            // Update references
+            currentAudio = newAudioElement;
+            currentPlayButton = newPlayButton;
+            updateGlobalMediaPlayer(newAudioElement);
+
+            // Play audio if context is unlocked
+            if (audioContextUnlocked) {
+                // Reset audio state
+                audioCompleted = false;
+                canNavigate = false;
+                
+                // Play the audio
+                playAudio(newAudioElement, newPlayButton, newPlayButton.querySelector('.play-icon'), newPlayButton.querySelector('.play-text'));
+            }
+        }
+
+        // Update navigation buttons
+        updateNavigationButtons();
+    }
+
     // Function to navigate between panels (from sounds.html buttons)
     window.navigatePanel = function(direction) {
         console.log('navigatePanel called with direction:', direction, 'from section:', currentSection);
         
-        // Block forward navigation if auto-advance is enabled
-        if (autoAdvanceEnabled && direction > 0) {
-            showNotification('Auto-advance is enabled. Navigation will happen automatically when audio finishes.');
-            return;
+        // If we're at the sleep ending, only allow going back to panel 4
+        const currentNarrativeSection = narrativeSections[currentSection];
+        if (currentNarrativeSection && currentNarrativeSection.classList.contains('ending-sleep')) {
+            if (direction === 1) {
+                console.log('Preventing forward navigation from sleep ending');
+                showNotification('This is the end of the sleep path. You can only go back to panel 4.');
+                return;
+            }
+            if (direction === -1) {
+                // Only allow going back to panel 4
+                const panel4Index = Array.from(narrativeSections).findIndex(sec => sec.dataset.section === '4');
+                if (panel4Index !== -1) {
+                    currentSection = panel4Index;
+                    scrollToSection(currentSection);
+                    updateActiveNarrativeSection();
+                }
+                return;
+            }
         }
         
-        // If trying to go forward and not allowed, show notification
-        if (direction > 0 && !audioCompleted && !isFastForwardMode && !hasCompletedStory) {
-            showNotification('Please wait for the audio to finish before proceeding...');
-            return;
+        // Prevent navigation beyond panel 5 if we're in the sleep path
+        if (currentSection === 4 && direction === 1) {
+            const nextSection = narrativeSections[currentSection + 1];
+            if (nextSection && nextSection.classList.contains('ending-sleep')) {
+                // Allow navigation to sleep ending
+                currentSection = currentSection + direction;
+                scrollToSection(currentSection);
+                updateActiveNarrativeSection();
+                return;
+            }
         }
-
+        
+        // Rest of the navigation logic...
         stopCurrentAudio();
         
         // Temporarily hide panel navigation buttons from screen readers during transition
@@ -1290,19 +1219,14 @@ document.addEventListener('DOMContentLoaded', function() {
             btn.setAttribute('aria-hidden', 'true');
         });
 
-        const currentNarrativeSection = narrativeSections[currentSection];
         let newSectionIndex = currentSection + direction;
 
         // Handle branching choice from Panel 4
         if (currentNarrativeSection.dataset.section === '4' && direction === 1) {
-            console.log('Branching choice from Panel 4 detected via manual navigation.');
+            console.log('Branching choice from Panel 4 detected.');
             const branchingChoice = currentNarrativeSection.querySelector('.branching-choice');
             if (branchingChoice) {
                 branchingChoice.style.display = 'flex';
-                console.log('Branching choice shown via manual navigation');
-                showNotification('Choose your path...');
-            } else {
-                console.log('ERROR: Branching choice element not found in Panel 4 (manual navigation)');
             }
             return;
         }
@@ -1316,109 +1240,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
-        // Handle navigation from ending panels back to Panel 4
-        if (currentNarrativeSection.classList.contains('ending-sleep') && direction === -1) {
-            newSectionIndex = Array.from(narrativeSections).findIndex(sec => sec.dataset.section === '4');
-            console.log('Navigating back from sleep ending to Panel 4. New section index:', newSectionIndex);
-            
-            if (newSectionIndex !== -1) {
-                currentSection = newSectionIndex;
-                scrollToSection(currentSection);
-                updateActiveNarrativeSection();
-                updateNavigationButtons();
-                
-                // Restore accessibility after transition
-                setTimeout(() => {
-                    document.querySelectorAll('.panel-navigation button').forEach(btn => {
-                        btn.removeAttribute('aria-hidden');
-                    });
-                }, 500);
-                return; // Important: Exit early to prevent further processing
-            }
-        } else if (currentNarrativeSection.classList.contains('ending-pray') && direction === -1) {
-            newSectionIndex = Array.from(narrativeSections).findIndex(sec => sec.dataset.section === '4');
-            console.log('Navigating back from pray ending to Panel 4. New section index:', newSectionIndex);
-            
-            if (newSectionIndex !== -1) {
-                currentSection = newSectionIndex;
-                scrollToSection(currentSection);
-                updateActiveNarrativeSection();
-                updateNavigationButtons();
-                
-                // Restore accessibility after transition
-                setTimeout(() => {
-                    document.querySelectorAll('.panel-navigation button').forEach(btn => {
-                        btn.removeAttribute('aria-hidden');
-                    });
-                }, 500);
-                return; // Important: Exit early to prevent further processing
-            }
-        } else if (newSectionIndex >= 0 && newSectionIndex < narrativeSections.length) {
-            let targetSection = narrativeSections[newSectionIndex];
-            // Skip hidden sections if they are not the target
-            while (targetSection && targetSection.style.display === 'none') {
-                newSectionIndex += direction;
-                if (newSectionIndex < 0 || newSectionIndex >= narrativeSections.length) {
-                    targetSection = null;
-                    break;
-                }
-                targetSection = narrativeSections[newSectionIndex];
-            }
-
-            if (targetSection) {
-                currentSection = newSectionIndex;
-                console.log('Navigated to new section index:', currentSection, 'dataset.section:', targetSection.dataset.section);
-                const newAudioElement = targetSection.querySelector('audio');
-                const newPlayButton = targetSection.querySelector('.play-btn');
-
-                if (newAudioElement && newPlayButton) {
-                    console.log('Found new audio element and play button for new panel.');
-                    // If there's audio on the new panel, set it as current and autoplay if unlocked and paused
-                    currentAudio = newAudioElement;
-                    currentPlayButton = newPlayButton;
-                    updateGlobalMediaPlayer(newAudioElement); // Update global player with new audio
-
-                    if (audioContextUnlocked && newAudioElement.paused) {
-                        console.log('Attempting to autoplay new panel audio.');
-                        // Add a small delay to ensure the DOM is updated and prevent conflicts with screen readers
-                        setTimeout(() => {
-                            // Announce panel change to screen readers without interfering with audio
-                            const announceEl = document.getElementById('sr-announcements');
-                            if (announceEl) {
-                                announceEl.textContent = `Panel ${targetSection.dataset.section} audio playing`;
-                            }
-                            playAudio(newAudioElement, newPlayButton, newPlayButton.querySelector('.play-icon'), newPlayButton.querySelector('.play-text'));
-                        }, 200);
-                    } else if (!audioContextUnlocked) {
-                        console.log('Audio context not unlocked for new panel autoplay.');
-                        showNotification('Please enable audio first (bottom left icon)!');
-                    }
-
-                } else {
-                    console.log('No audio element or play button found for new panel.');
-                    // If no audio on the new panel, clear current audio and reset global player display
-                    currentAudio = null;
-                    currentPlayButton = null;
-                    if (globalMediaPlayer) {
-                        globalPlayPauseBtn.textContent = '▶';
-                        globalSeekSlider.value = 0;
-                        currentTimeDisplay.textContent = '0:00';
-                        totalTimeDisplay.textContent = '0:00';
-                    }
-                }
-            } else {
-                console.log('No valid target section found for navigation.');
-                return;
-            }
-        } else {
-            console.log('New section index out of bounds for navigation.');
-            return;
+        // Check if the new section index is valid
+        if (newSectionIndex >= 0 && newSectionIndex < narrativeSections.length) {
+            // Use the new navigation handler
+            handlePanelNavigation(newSectionIndex);
         }
 
-        scrollToSection(currentSection);
-        updateActiveNarrativeSection();
-        updateNavigationButtons(); // Update button visibility after navigation
-        
         // Restore accessibility of navigation buttons after transition
         setTimeout(() => {
             document.querySelectorAll('.panel-navigation button').forEach(btn => {
@@ -1460,16 +1287,16 @@ document.addEventListener('DOMContentLoaded', function() {
             if (currentAudio) {
                 if (currentAudio.paused) {
                     console.log('Global player: current audio paused, attempting to play.');
-                    currentAudio.play();
-                    globalPlayPauseBtn.textContent = '⏸';
+                    currentAudio.play().then(() => {
+                        updatePlayButtonState(currentPlayButton, currentAudio, true);
+                    }).catch(error => {
+                        console.error('Error playing audio:', error);
+                        showNotification('Error playing audio. Please try again.');
+                    });
                 } else {
                     console.log('Global player: current audio playing, attempting to pause.');
                     currentAudio.pause();
-                    globalPlayPauseBtn.textContent = '▶';
-                }
-                // Sync individual play button state (if currentPlayButton exists)
-                if (currentPlayButton) {
-                    updatePlayButtonState(currentPlayButton, currentAudio, !currentAudio.paused);
+                    updatePlayButtonState(currentPlayButton, currentAudio, false);
                 }
             } else {
                 console.log('Global player: No current audio to play/pause.');
@@ -1478,28 +1305,17 @@ document.addEventListener('DOMContentLoaded', function() {
 
         globalSeekSlider.addEventListener('input', () => {
             if (currentAudio) {
-                const seekTime = currentAudio.duration * (globalSeekSlider.value / 100);
+                const seekTime = (globalSeekSlider.value / 100) * currentAudio.duration;
                 currentAudio.currentTime = seekTime;
-                console.log('Global seek slider changed. Seeking to:', seekTime);
             }
         });
 
         // Handle playback speed changes
         if (playbackSpeedSelector) {
-            playbackSpeedSelector.addEventListener('change', (e) => {
-                const speed = parseFloat(e.target.value);
-                console.log('Playback speed changed to:', speed);
+            playbackSpeedSelector.addEventListener('change', () => {
                 if (currentAudio) {
-                    currentAudio.playbackRate = speed;
-                    console.log('Applied playback rate to current audio:', currentAudio.src);
+                    currentAudio.playbackRate = parseFloat(playbackSpeedSelector.value);
                 }
-                // Save the selected speed for future audio elements
-                document.querySelectorAll('audio').forEach(audio => {
-                    if (audio !== currentAudio) {
-                        audio.playbackRate = speed;
-                    }
-                });
-                showNotification(`Playback speed set to ${speed}x`);
             });
         }
 
@@ -1527,9 +1343,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (audioElement === currentAudio) {
                     globalPlayPauseBtn.textContent = '⏸';
                     console.log('Global player button set to PAUSE (audio playing).');
-                    // Keep global media player visible in story book
-                    const activeSectionElement = document.querySelector('.section.active');
-                    if (globalMediaPlayer && activeSectionElement && activeSectionElement.id === 'sounds') {
+                    // Keep global media player visible in story book, if it was already visible or current section is sounds
+                    if (globalMediaPlayer && sections[currentSection].id === 'sounds') {
                         globalMediaPlayer.style.display = 'flex';
                     }
                 }
@@ -1554,37 +1369,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Function to set the current audio for the global player
-    function updateGlobalMediaPlayer(audioElement) {
-        const audioSrc = audioElement.src || audioElement.currentSrc || (audioElement.querySelector('source') ? audioElement.querySelector('source').src : 'no source found');
-        console.log('updateGlobalMediaPlayer called for:', audioSrc, 'currentAudio:', currentAudio ? (currentAudio.src || currentAudio.currentSrc) : 'none');
-        if (currentAudio && currentAudio !== audioElement) {
-            console.log('Pausing previous currentAudio in updateGlobalMediaPlayer:', currentAudio.src);
-            currentAudio.pause(); // Pause previous audio if different
-            // Also reset its button if it was playing and not the new one
-            if (currentPlayButton && currentPlayButton !== audioElement.closest('.narrative-section').querySelector('.play-btn')) {
-                resetAudioButton(currentPlayButton);
-            }
-        }
-        currentAudio = audioElement; // Set the new current audio
+    // Update the updateGlobalMediaPlayer function
+    function updateGlobalMediaPlayer(audio) {
+        if (!audio) return;
         
-        // Apply current playback speed to the new audio
+        // Update total time display
+        if (totalTimeDisplay) {
+            totalTimeDisplay.textContent = formatTime(audio.duration);
+        }
+        
+        // Reset seek slider
+        if (globalSeekSlider) {
+            globalSeekSlider.value = 0;
+        }
+        
+        // Update current time display
+        if (currentTimeDisplay) {
+            currentTimeDisplay.textContent = '0:00';
+        }
+        
+        // Update playback speed
         if (playbackSpeedSelector) {
-            const selectedSpeed = parseFloat(playbackSpeedSelector.value);
-            currentAudio.playbackRate = selectedSpeed;
-            console.log('Applied playback rate', selectedSpeed, 'to new current audio');
+            audio.playbackRate = parseFloat(playbackSpeedSelector.value);
         }
         
-        globalPlayPauseBtn.textContent = currentAudio.paused ? '▶' : '⏸';
-        globalSeekSlider.value = (currentAudio.currentTime / currentAudio.duration) * 100 || 0;
-        currentTimeDisplay.textContent = formatTime(currentAudio.currentTime);
-        totalTimeDisplay.textContent = formatTime(currentAudio.duration);
-        
-        // Only show global media player if we're in the Story Book section
-        const activeSection = document.querySelector('.section.active');
-        if (globalMediaPlayer && activeSection && activeSection.id === 'sounds') {
+        // Ensure global player is visible
+        if (globalMediaPlayer) {
             globalMediaPlayer.style.display = 'flex';
         }
+        
+        // Update play/pause button state
+        if (globalPlayPauseBtn) {
+            globalPlayPauseBtn.textContent = audio.paused ? '▶' : '⏸';
+        }
+        
+        // Force a timeupdate event to sync the media player
+        const event = new Event('timeupdate');
+        audio.dispatchEvent(event);
     }
 
     // Helper to format time
@@ -1601,105 +1422,39 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        console.log('=== AUTO-ADVANCE STARTING ===');
         console.log('Auto-advancing to next panel from section:', currentSection);
         
         const currentNarrativeSection = narrativeSections[currentSection];
-        const currentDataSection = currentNarrativeSection.dataset.section;
         
-        console.log('Current section details:', {
-            currentSection,
-            dataSection: currentDataSection,
-            hasSleepClass: currentNarrativeSection.classList.contains('ending-sleep'),
-            hasPrayClass: currentNarrativeSection.classList.contains('ending-pray')
-        });
-        
-        // Handle Panel 4 - show branching choice only if it's the original Panel 4
-        if (currentDataSection === '4' && 
-            !currentNarrativeSection.classList.contains('ending-sleep') && 
-            !currentNarrativeSection.classList.contains('ending-pray')) {
-            console.log('Original Panel 4 audio ended - showing branching choice');
+        // Handle special cases first
+        if (currentNarrativeSection.dataset.section === '4') {
+            // Panel 4 leads to branching choice, don't auto-advance
+            console.log('Panel 4 audio ended - showing branching choice instead of auto-advancing');
             const branchingChoice = currentNarrativeSection.querySelector('.branching-choice');
             if (branchingChoice) {
                 branchingChoice.style.display = 'flex';
-                showNotification('Choose your path...');
-                
-                // Ensure we don't auto-advance past the choice
-                audioCompleted = true;
-                canNavigate = true;
-                updateNavigationButtons();
             }
             return;
         }
         
-        // Handle sleep ending - this should not auto-advance (handled by sleep choice logic)
+        // Check if we're at the end of the story
         if (currentNarrativeSection.classList.contains('ending-sleep')) {
-            console.log('Sleep ending - auto-advance handled separately');
+            console.log('Reached sleep ending - showing final page');
+            showFinalPage();
             return;
         }
         
-        // Handle pray ending - continue to Panel 7
         if (currentNarrativeSection.classList.contains('ending-pray')) {
-            console.log('Pray ending completed - continuing to Panel 7');
-            const panel7 = document.querySelector('[data-section="7"]');
-            if (panel7) {
-                // Make sure Panel 7 is visible
-                panel7.style.display = 'flex';
-                
-                // Prevent scroll interference during auto-advance
-                isAutoScrolling = true;
-                
-                currentSection = Array.from(narrativeSections).indexOf(panel7);
-                console.log('Moving from pray ending to Panel 7, new currentSection:', currentSection);
-                
-                // Reset flags for the new section
-                audioCompleted = false;
-                canNavigate = false;
-                
-                scrollToSection(currentSection);
-                updateActiveNarrativeSection(false, true); // forceAutoplay = true
-                updateNavigationButtons();
-                
-                // Re-enable scroll detection after transition (extended timeout)
-                setTimeout(() => {
-                    isAutoScrolling = false;
-                    console.log('Auto-advance from pray to Panel 7 complete');
-                }, 2000);
-                
-                return;
-            }
+            console.log('Reached pray ending - not auto-advancing');
+            return;
         }
         
-        // For all other panels, find the next sequential panel
+        // Find next valid section
         let nextSectionIndex = currentSection + 1;
         let nextSection = narrativeSections[nextSectionIndex];
         
-        console.log('Looking for next section after:', currentSection);
-        console.log('Current section data-section:', currentNarrativeSection.dataset.section);
-        console.log('Next section index would be:', nextSectionIndex);
-        console.log('Next section element:', nextSection);
-        console.log('Next section data-section:', nextSection ? nextSection.dataset.section : 'none');
-        console.log('Next section display style:', nextSection ? nextSection.style.display : 'none');
-        
-        // Special protection: Ensure Panel 3 always goes to Panel 4
-        if (currentDataSection === '3') {
-            console.log('=== PANEL 3 DETECTED - APPLYING PROTECTION ===');
-            const panel4 = document.querySelector('[data-section="4"]');
-            if (panel4) {
-                nextSection = panel4;
-                nextSectionIndex = Array.from(narrativeSections).indexOf(panel4);
-                console.log('PANEL 3 PROTECTION: Forcing advance to Panel 4, index:', nextSectionIndex);
-                console.log('Panel 4 element:', panel4);
-                console.log('Panel 4 display style:', panel4.style.display);
-                console.log('Panel 4 classes:', panel4.className);
-            } else {
-                console.error('CRITICAL ERROR: Panel 4 not found when advancing from Panel 3!');
-            }
-        }
-        
         // Skip hidden sections
         while (nextSection && nextSection.style.display === 'none') {
-            console.log('Skipping hidden section:', nextSectionIndex, 'data-section:', nextSection.dataset.section);
             nextSectionIndex++;
             if (nextSectionIndex >= narrativeSections.length) {
                 nextSection = null;
@@ -1709,72 +1464,22 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         if (nextSection && nextSectionIndex < narrativeSections.length) {
-            console.log('Auto-advancing to section:', nextSectionIndex, 'dataset.section:', nextSection.dataset.section);
+            console.log('Auto-advancing to section:', nextSectionIndex);
             
-            // Special case: If the next section is Panel 4, proceed normally (it will handle the branching choice when its audio ends)
-            if (nextSection.dataset.section === '4') {
-                console.log('Next section is Panel 4 - proceeding normally to allow branching choice');
-                // Don't skip Panel 4, let it proceed normally
-            }
-            // Skip ending sections that should be hidden
-            else if (nextSection.classList.contains('ending-sleep') || 
-                nextSection.classList.contains('ending-pray')) {
-                console.log('Skipping ending section, looking for next valid section');
-                // Try to find the next non-ending section
-                let searchIndex = nextSectionIndex + 1;
-                while (searchIndex < narrativeSections.length) {
-                    const candidate = narrativeSections[searchIndex];
-                    if (candidate && 
-                        !candidate.classList.contains('ending-sleep') && 
-                        !candidate.classList.contains('ending-pray') &&
-                        candidate.style.display !== 'none') {
-                        nextSection = candidate;
-                        nextSectionIndex = searchIndex;
-                        break;
-                    }
-                    searchIndex++;
-                }
-            }
+            // Reset flags for the new section
+            audioCompleted = false;
+            canNavigate = false; // Prevent manual navigation during auto-advance
             
-            if (nextSection && 
-                !nextSection.classList.contains('ending-sleep') && 
-                !nextSection.classList.contains('ending-pray')) {
-                
-                // Prevent scroll interference during auto-advance
-                isAutoScrolling = true;
-                
-                // Reset flags for the new section
-                audioCompleted = false;
-                canNavigate = false;
-                
-                // Navigate to next panel
-                currentSection = nextSectionIndex;
-                scrollToSection(currentSection);
-                updateActiveNarrativeSection(false, true); // forceAutoplay = true
-                updateNavigationButtons();
-                
-                // Re-enable scroll detection after transition (extended timeout)
-                setTimeout(() => {
-                    isAutoScrolling = false;
-                    console.log('Regular auto-advance complete to section', nextSectionIndex);
-                }, 2000);
-                
-                console.log('Auto-advance completed - moved to section', nextSectionIndex);
-            } else {
-                console.log('Reached end of story');
-                hasCompletedStory = true;
-                if (!isFastForwardMode) {
-                    toggleFastForwardMode();
-                    showNotification('Story completed! Fast-forward mode enabled.');
-                }
-            }
+            // Navigate to next panel
+            currentSection = nextSectionIndex;
+            scrollToSection(currentSection);
+            updateActiveNarrativeSection(false, true); // forceAutoplay = true for auto-advance
+            updateNavigationButtons();
+            
+            // The audio will be handled by updateActiveNarrativeSection with forceAutoplay = true
+            console.log('Auto-advance completed - audio should be playing automatically');
         } else {
-            console.log('No valid next section found - story complete');
-            hasCompletedStory = true;
-            if (!isFastForwardMode) {
-                toggleFastForwardMode();
-                showNotification('Story completed! Fast-forward mode enabled.');
-            }
+            console.log('No valid next section found for auto-advance');
         }
     }
 
@@ -1789,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
-                if (entry.isIntersecting && !isRestarting && !isAutoScrolling) {
+                if (entry.isIntersecting && !isRestarting) {
                     const activeSection = entry.target; // The currently active section
                     const sectionIndex = Array.from(narrativeSections).indexOf(activeSection);
                     console.log('Intersection Observer: Section', sectionIndex, 'is intersecting.');
@@ -1806,11 +1511,7 @@ document.addEventListener('DOMContentLoaded', function() {
                             console.log('Intersection Observer: Found audio and play button for new active section.');
                             currentAudio = newAudioElement;
                             currentPlayButton = newPlayButton;
-                            // Only update global media player if we're in the Story Book section
-                            const activeSection = document.querySelector('.section.active');
-                            if (activeSection && activeSection.id === 'sounds') {
-                                updateGlobalMediaPlayer(newAudioElement); // Update global player
-                            }
+                            updateGlobalMediaPlayer(newAudioElement); // Update global player
                             
                             // Only autoplay if auto-advance is disabled or if audio context is unlocked and audio is paused
                             // This prevents conflicts with auto-advance functionality
@@ -1879,53 +1580,216 @@ document.addEventListener('DOMContentLoaded', function() {
         ctaBtn.addEventListener('click', function() {
             showSection('sounds');
             updateActiveNav('sounds');
-            // Remove forced scroll to top to allow natural scrolling
+            window.scrollTo(0, 0);
         });
     }
 
-    // Behind Scenes Overlay Functionality
-    function initializeBehindScenesOverlay() {
-        const overlayImage = document.querySelector('.bhs-overlay-image');
-        const playIndicator = document.querySelector('.overlay-play-indicator');
-        
-        if (overlayImage && playIndicator) {
-            // Function to hide overlay and show video
-            function hideOverlay() {
-                overlayImage.style.opacity = '0';
-                overlayImage.style.pointerEvents = 'none';
-                playIndicator.style.opacity = '0';
-                playIndicator.style.pointerEvents = 'none';
-                showNotification('Double-click anywhere on the video to restore the overlay');
+    function showFirstPanel() {
+        // Hide the home section
+        const homeSection = document.querySelector('.narrative-section.home-section');
+        if (homeSection) {
+            homeSection.classList.remove('active');
+            homeSection.style.display = 'none';
+        }
+        // Show the first panel
+        const firstPanel = document.querySelector('.narrative-section[data-section="1"]');
+        if (firstPanel) {
+            currentSection = 1; // Ensure auto-advance logic works
+            firstPanel.classList.add('active');
+            firstPanel.style.display = 'flex';
+            // Play the audio for the first panel
+            const audio = firstPanel.querySelector('audio');
+            const playButton = firstPanel.querySelector('.play-btn');
+            if (audio && playButton) {
+                if (typeof audioContextUnlocked !== 'undefined' && !audioContextUnlocked) {
+                    audio.play().then(() => {
+                        audioContextUnlocked = true;
+                        playAudio(audio, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
+                    }).catch(() => {
+                        playAudio(audio, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
+                    });
+                } else {
+                    playAudio(audio, playButton, playButton.querySelector('.play-icon'), playButton.querySelector('.play-text'));
+                }
             }
-
-            // Function to show overlay
-            function showOverlay() {
-                overlayImage.style.opacity = '1';
-                overlayImage.style.pointerEvents = 'auto';
-                playIndicator.style.opacity = '1';
-                playIndicator.style.pointerEvents = 'auto';
-                showNotification('Overlay restored');
-            }
-
-            // Add click events to both overlay image and play indicator
-            overlayImage.addEventListener('click', hideOverlay);
-            playIndicator.addEventListener('click', hideOverlay);
-
-            // Add double-click event to video container to restore overlay
-            const videoContainer = document.querySelector('.video-container');
-            if (videoContainer) {
-                videoContainer.addEventListener('dblclick', function(e) {
-                    // Only restore if clicking on the container, not the overlay
-                    if (e.target === this || e.target.tagName === 'IFRAME') {
-                        showOverlay();
-                    }
-                });
-            }
-
-            // Add context menu prevention
-            overlayImage.addEventListener('contextmenu', function(e) {
-                e.preventDefault();
-            });
         }
     }
+
+    // Attach to the trigger button
+    const triggerBtn = document.querySelector('.trigger-btn');
+    if (triggerBtn) {
+        triggerBtn.addEventListener('click', showFirstPanel);
+    }
+
+    // Auto-advance toggle functionality is now handled by the existing autoAdvanceIndicator
+    function setupAutoAdvanceToggle() {
+        // This function is no longer needed - auto-advance toggle is handled by autoAdvanceIndicator
+        console.log('Auto-advance toggle handled by existing autoAdvanceIndicator in top right');
+    }
+
+    // Setup video overlay functionality
+    function setupVideoOverlay() {
+        const videoOverlay = document.getElementById('videoOverlay');
+        const videoPlayBtn = document.getElementById('videoPlayBtn');
+        const youtubeVideo = document.getElementById('youtubeVideo');
+        
+        if (videoOverlay && videoPlayBtn && youtubeVideo) {
+            // Add click event to overlay and play button
+            const handleVideoClick = () => {
+                console.log('Video overlay clicked - showing YouTube video');
+                
+                // Hide overlay with animation
+                videoOverlay.classList.add('hidden');
+                
+                // Show YouTube video after overlay fades out
+                setTimeout(() => {
+                    videoOverlay.style.display = 'none';
+                    youtubeVideo.style.display = 'block';
+                    
+                    // Update iframe src to enable autoplay
+                    const currentSrc = youtubeVideo.src;
+                    if (!currentSrc.includes('autoplay=1')) {
+                        const separator = currentSrc.includes('?') ? '&' : '?';
+                        youtubeVideo.src = currentSrc + separator + 'autoplay=1&rel=0';
+                    }
+                    
+                    // Ensure video is properly sized
+                    youtubeVideo.style.width = '100%';
+                    youtubeVideo.style.height = '100%';
+                    
+                    console.log('YouTube video is now visible and should be playing');
+                }, 300);
+            };
+            
+            videoOverlay.addEventListener('click', handleVideoClick);
+            videoPlayBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent double-triggering
+                handleVideoClick();
+            });
+            
+            console.log('Video overlay functionality setup complete');
+        } else {
+            console.log('Video overlay elements not found');
+        }
+    }
+
+    // Setup auto-advance toggle
+    setupAutoAdvanceToggle();
+
+    // Setup video overlay
+    setupVideoOverlay();
+    
+    // Setup mobile burger menu
+    setupBurgerMenu();
+
+    // Add event listeners for video cleanup
+    setupVideoCleanup();
 });
+
+// Mobile Burger Menu Functionality
+function setupBurgerMenu() {
+    const navBurger = document.getElementById('navBurger');
+    const navItems = document.getElementById('navItems');
+    
+    if (!navBurger || !navItems) {
+        console.log('Burger menu elements not found');
+        return;
+    }
+    
+    // Toggle mobile menu
+    navBurger.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        navBurger.classList.toggle('active');
+        navItems.classList.toggle('active');
+        
+        // Prevent body scroll when menu is open
+        if (navItems.classList.contains('active')) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Close menu when clicking on a nav item
+    const navItemElements = navItems.querySelectorAll('.nav-item');
+    navItemElements.forEach(item => {
+        item.addEventListener('click', () => {
+            navBurger.classList.remove('active');
+            navItems.classList.remove('active');
+            document.body.style.overflow = '';
+        });
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', (e) => {
+        if (navItems.classList.contains('active') && 
+            !navItems.contains(e.target) && 
+            !navBurger.contains(e.target)) {
+            navBurger.classList.remove('active');
+            navItems.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Close menu on window resize if desktop view
+    window.addEventListener('resize', () => {
+        if (window.innerWidth > 768) {
+            navBurger.classList.remove('active');
+            navItems.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    // Handle escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && navItems.classList.contains('active')) {
+            navBurger.classList.remove('active');
+            navItems.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    
+    console.log('Burger menu setup complete');
+}
+
+// Function to pause/stop YouTube video
+function pauseYouTubeVideo() {
+    const youtubeVideo = document.getElementById('youtubeVideo');
+    const videoOverlay = document.getElementById('videoOverlay');
+    
+    if (youtubeVideo && videoOverlay) {
+        console.log('Pausing YouTube video');
+        
+        // Hide the video and show overlay again
+        youtubeVideo.style.display = 'none';
+        videoOverlay.classList.remove('hidden');
+        
+        // Reset the video src to stop playback completely
+        const originalSrc = youtubeVideo.src.split('?')[0]; // Remove query parameters
+        youtubeVideo.src = originalSrc;
+        
+        console.log('YouTube video paused and reset');
+    }
+}
+
+// Setup video cleanup event listeners
+function setupVideoCleanup() {
+    // Pause video when page is about to unload
+    window.addEventListener('beforeunload', () => {
+        pauseYouTubeVideo();
+    });
+    
+    // Pause video when page visibility changes (user switches tabs)
+    document.addEventListener('visibilitychange', () => {
+        if (document.hidden) {
+            const currentActiveSection = document.querySelector('.section.active');
+            if (currentActiveSection && currentActiveSection.id === 'behind-scenes') {
+                pauseYouTubeVideo();
+            }
+        }
+    });
+    
+    console.log('Video cleanup event listeners added');
+}
